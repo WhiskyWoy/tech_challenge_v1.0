@@ -1,13 +1,11 @@
 import streamlit as st
 import pandas as pd
 import lorem
-st.set_page_config(layout="wide")
 
-# Using object notation
-add_selectbox = st.sidebar.selectbox(
-    "How would you like to be contacted?",
-    ("Email", "Home phone", "Mobile phone")
-)
+if 'df' not in st.session_state:
+    st.session_state.df = pd.DataFrame()
+
+st.set_page_config(layout="wide")
 
 # Using "with" notation
 with st.sidebar:
@@ -15,28 +13,35 @@ with st.sidebar:
     textsize = st.slider("Text size", 1, 10, 2)
     
 
-st.title("Hello Jasmin")
-st.header("Jasmin's table of facts")
-#st.write(lorem.text())
-#st.markdown('<font size=10>lorem.text()</font>')
+
+if st.session_state.df.empty:
+    st.title("You need to upload briefs first")
+    st.header("Example table of facts")
+    #st.write(lorem.text())
+    #st.markdown('<font size=10>lorem.text()</font>')
 
 
-# Define the font size variable
-font_size = textsize
-print("print")
+    # Define the font size variable
+    font_size = textsize
+    print("reload 2")
 
-@st.cache
-def text():
-    return lorem.text()
+    @st.cache_data
+    def text():
+        return lorem.text()
 
-# Use st.markdown with inline CSS to change the font size
-#st.markdown(f'<div style="font-size: {font_size*10}px;">{text()}</div>', unsafe_allow_html=True)
+    # Use st.markdown with inline CSS to change the font size
+    #st.markdown(f'<div style="font-size: {font_size*10}px;">{text()}</div>', unsafe_allow_html=True)
 
-@st.cache
-def load_data():
-    df = pd.read_excel("fact_table.xlsx")
-    #use first column as index and drop it
-    df.set_index(df.columns[0], inplace=True)
-    return df
+    @st.cache_data
+    def load_data():
+        df = pd.read_excel("fact_table.xlsx")
+        #use first column as index and drop it
+        df.set_index(df.columns[0], inplace=True)
+        return df
 
-st.table(load_data())
+    st.table(load_data())
+else:
+    st.title("Table of Facts")
+    st.table(st.session_state.df)
+
+

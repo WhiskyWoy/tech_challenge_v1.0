@@ -1,34 +1,38 @@
 import streamlit as st
 import pandas as pd
 import lorem
-st.set_page_config(layout="wide")
 
-# Using object notation
-add_selectbox = st.sidebar.selectbox(
-    "How would you like to be contacted?",
-    ("Email", "Home phone", "Mobile phone")
-)
+if 'df' not in st.session_state:
+    st.session_state.df = pd.DataFrame()
+
+st.set_page_config(layout="wide")
 
 # Using "with" notation
 with st.sidebar:
     download = st.download_button("Download pdf", "Good Job!")
     textsize = st.slider("Text size", 1, 10, 2)
     
+if st.session_state.df.empty:
+    st.title("You need to upload briefs first")
+    st.header("Example Summary:")
+    #st.write(lorem.text())
+    #st.markdown('<font size=10>lorem.text()</font>')
 
-st.title("Hello Jasmin")
-st.header("Hello Jasmin 2")
-#st.write(lorem.text())
-#st.markdown('<font size=10>lorem.text()</font>')
 
+    # Define the font size variable
+    font_size = textsize
+    print("reload 1")
 
-# Define the font size variable
-font_size = textsize
-print("print")
+    @st.cache_data
+    def text():
+        return lorem.text()
 
-@st.cache
-def text():
-    return lorem.text()
-
-# Use st.markdown with inline CSS to change the font size
-st.markdown(f'<div style="font-size: {font_size*10}px;">{text()}</div>', unsafe_allow_html=True)
+    # Use st.markdown with inline CSS to change the font size
+    st.markdown(f'<div style="font-size: {font_size*10}px;">{text()}</div>', unsafe_allow_html=True)
+else:
+    st.title("Event Summary")
+    for index, row in st.session_state.df.iterrows():
+        st.write(row['text'])
+        st.write(row['filename'])
+        st.write("----")
 
