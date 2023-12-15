@@ -31,3 +31,4 @@ def text():
 
 # Use st.markdown with inline CSS to change the font size
 st.markdown(f'<div style="font-size: {font_size*10}px;">{text()}</div>', unsafe_allow_html=True)
+
