@@ -13,7 +13,7 @@ if 'df' not in st.session_state:
 
 st.write("# Welcome to Jasmin, your AI Judge Assistant! 👋")
 
-st.sidebar.write("Upload your document an then select a feature above.")
+st.sidebar.write("Upload your document and then select a feature above.")
 
 st.markdown(
     """
