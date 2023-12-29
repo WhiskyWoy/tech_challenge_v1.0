@@ -125,12 +125,5 @@ def highlight_pdf(highlighted_text, context):
 
 def call (data):
     df = pd.DataFrame(data)
-<<<<<<< HEAD
-    #sleep for 5 seconds
-    time.sleep(5)
-    st.session_state.df = df
-=======
     st.session_state.text_input = df
     generate_summary(df)
-
->>>>>>> origin/main
