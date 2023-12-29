@@ -7,53 +7,33 @@ import openai
 # initlializing key for gpt calls
 openai.api_key = "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"
 
-### Feature 1: Generate Summary of the events (https://medium.com/@AIandInsights/text-summarization-8c47f8c115a8#:~:text=Here%E2%80%99s%20an%20example%20function%20that%20uses%20OpenAI%E2%80%99s%20GPT-3,text%3A%20def%20generate_summary%20%28text%29%3A%20input_chunks%20%3D%20split_text%20%28text%29)
+### Feature 1: Generate Summary of the events 
 
-# Preprocessing data into smaller chunks to ensure correct format
-# Markdown text
-# summary geht über Inhalte beider texte
-def split_text(text):
-    max_chunk_size = 2048
-    chunks = []
-    current_chunk = ""
-    for sentence in text.split("."):
-        if len(current_chunk) + len(sentence) < max_chunk_size:
-            current_chunk += sentence + "."
-        else:
-            chunks.append(current_chunk.strip())
-            current_chunk = sentence + "."
-    if current_chunk:
-        chunks.append(current_chunk.strip())
-    return chunks
+def generate_summary(data_dict):
+    # Converting the dictionary in a pandas dataframe
+    df = pd.DataFrame.from_dict(data_dict)
 
-# Generating a summary for every extracted chunk
-def generate_summary(text):
-    input_chunks = split_text(text)
-    output_chunks = []
-    for chunk in input_chunks:
-        response = openai.Completion.create(
-            engine="davinci",
-            prompt=(f"Please summarize the following text:\n{chunk}\n\nSummary:"),
-            temperature=0.5,
-            max_tokens=1024,
-            n = 1,
-            stop=None
-        )
-        summary = response.choices[0].text.strip()
-        output_chunks.append(summary)
-    return " ".join(output_chunks)
+    # Create the text for summary
+    text_to_summarize = " ".join(df['text'].tolist())
 
-# Slighly different approach
-def generate_summary(input):
-    try:
-        response = openai.Completion.create(
-            engine="text-davinci-003",  
-            prompt=input
-            max_tokens=150
-        )
-        return response.choices[0].text.strip()
-    except Exception as e:
-        return f"Error: {str(e)}"
+    # Defining the prompt for the summary of the text
+    prompt = f"Generieren Sie bitte eine zusammenfassede Übersicht der Sachlage basierend auf dem vorliegenden 
+    juristischen Schriftsatz \n{text_to_summarize}. Der Schriftsatz beinhaltet die Sichtweise des Klägers und des 
+    Angeklagten. Berücksichtigen Sie bei der Zusammenfassung die Hauptargumente beider Parteien und liefern Sie eine 
+    zusammenhängende Darstellung der rechtlichen Auseinandersetzung. Bitte fassen Sie den Inhalt der Schriftsätze 
+    in einer prägnanten, verständlichen Form zusammen."
+
+    # Calling the OpenAI API to create a summary
+    response = openai.Completion.create(
+      engine="text-davinci-003",
+      prompt=prompt,
+      max_tokens=150  # can be adjusted
+    )
+
+    # Extracting the generated summary from the api answer 
+    generated_summary = response.choices[0].text.strip()
+
+    return generated_summary
 
 ### Feature 2: Overview of disputed and undisputed facts
 
