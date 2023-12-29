@@ -3,9 +3,7 @@ import pandas as pd
 import lorem
 
 if 'df' not in st.session_state:
-    st.session_state.df = pd.DataFrame()
-
-st.set_page_config(layout="wide")
+    st.session_state.text_input = pd.DataFrame()
 
 # Using "with" notation
 with st.sidebar:
@@ -14,7 +12,7 @@ with st.sidebar:
     
 
 
-if st.session_state.df.empty:
+if st.session_state.text_input.empty:
     st.title("You need to upload briefs first")
     st.header("Example table of facts")
     #st.write(lorem.text())
@@ -42,6 +40,6 @@ if st.session_state.df.empty:
     st.table(load_data())
 else:
     st.title("Table of Facts")
-    st.table(st.session_state.df)
+    st.table(st.session_state.text_input)
 
 

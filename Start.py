@@ -13,7 +13,7 @@ st.set_page_config(
 
 # Ensuring the information storage across sessions
 if 'df' not in st.session_state:
-    st.session_state.df = pd.DataFrame()
+    st.session_state.text_input = pd.DataFrame()
 
 # Formatting of the page
 st.write("# Welcome to Jasmin, your AI Judge Assistant! 👋")

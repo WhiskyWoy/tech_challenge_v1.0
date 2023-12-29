@@ -4,9 +4,7 @@ import lorem
 import pybase64
 
 if 'df' not in st.session_state:
-    st.session_state.df = pd.DataFrame()
-
-st.set_page_config(layout="wide")
+    st.session_state.text_input = pd.DataFrame()
 
 def displayPDF(file, col):
     # Opening file from file path
@@ -26,12 +24,12 @@ with st.sidebar:
     
 col1, col2 = st.columns(2)
 
-if st.session_state.df.empty:
+if st.session_state.text_input.empty:
     st.title("You need to upload briefs first")
 
 else:
     st.title("Comparison of both briefs")
     col1.header("Plaintiff")
-    displayPDF(st.session_state.df['filename'].iloc[0], col1)
+    displayPDF(st.session_state.text_input['filename'].iloc[0], col1)
     col2.header("Defendant")
-    displayPDF(st.session_state.df['filename'].iloc[1], col2)
+    displayPDF(st.session_state.text_input['filename'].iloc[1], col2)
