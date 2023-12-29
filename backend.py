@@ -17,17 +17,14 @@ def generate_summary(data_dict):
     text_to_summarize = " ".join(df['text'].tolist())
 
     # Defining the prompt for the summary of the text
-    prompt = f"Generieren Sie bitte eine zusammenfassede Übersicht der Sachlage basierend auf dem vorliegenden 
-    juristischen Schriftsatz \n{text_to_summarize}. Der Schriftsatz beinhaltet die Sichtweise des Klägers und des 
-    Angeklagten. Berücksichtigen Sie bei der Zusammenfassung die Hauptargumente beider Parteien und liefern Sie eine 
-    zusammenhängende Darstellung der rechtlichen Auseinandersetzung. Bitte fassen Sie den Inhalt der Schriftsätze 
-    in einer prägnanten, verständlichen Form zusammen."
+    prompt = f"Generieren Sie bitte eine zusammenfassede Übersicht der Sachlage basierend auf dem vorliegenden juristischen Schriftsatz \n{text_to_summarize}. Der Schriftsatz beinhaltet jeweils die Sichtweisen des Klägers und des Angeklagten. Berücksichtigen Sie bei der Zusammenfassung die Hauptargumente beider Parteien und liefern Sie eine zusammenhängende Darstellung der rechtlichen Auseinandersetzung. Bitte fassen Sie den Inhalt der Schriftsätze in einer prägnanten, verständlichen Form zusammen."
+
 
     # Calling the OpenAI API to create a summary
     response = openai.Completion.create(
-      engine="text-davinci-003",
-      prompt=prompt,
-      max_tokens=150  # can be adjusted
+        engine = "text-davinci-003", 
+        prompt=prompt, 
+        max_tokens=1000 # can be adjusted
     )
 
     # Extracting the generated summary from the api answer 

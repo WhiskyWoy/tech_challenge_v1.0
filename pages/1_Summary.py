@@ -1,10 +1,15 @@
+# Importing libraries
 import streamlit as st
 import pandas as pd
 import lorem
+import backend
+from Start import data_dict
 
+# Ensuring the information storage across sessions
 if 'df' not in st.session_state:
     st.session_state.df = pd.DataFrame()
 
+# Setting page layout
 st.set_page_config(layout="wide")
 
 # Using "with" notation
@@ -32,7 +37,8 @@ if st.session_state.df.empty:
 else:
     st.title("Event Summary")
     for index, row in st.session_state.df.iterrows():
-        st.write(row['text'])
-        st.write(row['filename'])
+        #st.write(row['text'])
+        st.write(backend.generate_summary(data_dict))
+        # st.write(row['filename'])
         st.write("----")
 
