@@ -3,6 +3,7 @@ import pandas as pd
 import time
 import streamlit as st
 import openai
+import fitz
 
 # initlializing key for gpt calls
 openai.api_key = "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"
@@ -49,15 +50,71 @@ def find_commonalities_and_differences(text1, text2):
     except Exception as e:
         return f"Error: {str(e)}"
 
+
 ### Feature 3: Compare documents by highlighting the briefs
-# text der reingeht, geht auch wieder raus
-# markierung der gemeinsamkeiten und unterschiede
-# welche Möglichkeiten gibt es, um pdf zu markieren?
-# Text ausgeben, der mit Markdown formatiert ist
+# input: text to be highlighted (as list), plaintiff/ defendant as context
+def highlight_pdf(highlighted_text, context):
+
+    if context == "plaintiff":
+        pdf = "brief_plaintiff.pdf"
+    else:
+        pdf = "brief_defendant.pdf"
+
+    pdfIn = fitz.open(pdf)
+
+    # highlighted_text = ["Das Motorrad war vor der Restaurierung nicht verkehrstüchtig, trotz seines Alters waren "
+    #                    "offensichtlich seit längerem keine Teile erneuert worden.",
+    #                    "Der Beklagte erfuhr erstmals bei einem Gespräch mit Herrn Grünbaum am 5. Juni 2021, dass "
+    #                    "dieser das Motorrad von einer unbekannten Person erworben hatte und dass dieses zuvor dem
+    #                    Sohn des Klägers gestohlen worden war."]
+
+    for page in pdfIn:
+
+        # find coordinates of text that should be highlighted
+        text_instances = [page.search_for(text) for text in highlighted_text]
+
+        # set list of colors for highlighting
+        highlight_colors = [
+            (1, 0, 0),  # Red
+            (0, 1, 0),  # Green
+            (0, 0, 1),  # Blue
+            (1, 1, 0),  # Yellow
+            (1, 0, 1),  # Magenta
+            (0, 1, 1),  # Cyan
+            (0.5, 0, 0),  # Maroon
+            (0, 0.5, 0),  # Olive
+            (0, 0, 0.5),  # Navy
+            (0.5, 0.5, 0),  # Olive Green
+            (0.5, 0, 0.5),  # Purple
+            (0, 0.5, 0.5),  # Teal
+            (0.8, 0.4, 0),  # Dark Orange
+            (0.8, 0, 0.4),  # Dark Reddish Pink
+            (0.4, 0.8, 0),  # Dark Lime Green
+            (0, 0.8, 0.4),  # Dark Mint Green
+            (0.4, 0, 0.8),  # Dark Indigo
+            (0, 0.4, 0.8),  # Dark Sky Blue
+            (0.7, 0.7, 0.7),  # Light Gray
+            (0.4, 0.4, 0.4),  # Medium Gray
+            (0.9, 0.9, 0),  # Pale Yellow
+            (0, 0.9, 0.9),  # Light Cyan
+            (0.9, 0, 0.9),  # Pink
+            (0.7, 0.7, 0.9),  # Light Purple
+            (0.9, 0.7, 0.7),  # Light Salmon
+        ]
+        # iterate through each instance for highlighting
+        i = 0
+        for inst in text_instances:
+            annot = page.add_highlight_annot(inst)
+            annot.set_colors(stroke=highlight_colors[i])
+            annot.update()
+            i += 1
+
+    # Saving the PDF Output
+    pdfIn.save("brief_" + context + "_highlighted.pdf")
+
 
 def call (data):
     df = pd.DataFrame(data)
     #sleep for 5 seconds
     time.sleep(5)
     st.session_state.df = df
-
