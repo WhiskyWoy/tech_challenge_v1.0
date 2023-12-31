@@ -1,14 +1,46 @@
 # Importing libraries
 import pandas as pd
-import time
 import streamlit as st
 import openai
 import re
+from pdfminer.high_level import extract_text
+from io import StringIO
+#pip install pymupdf
 import fitz
 
 
 # initlializing key for gpt calls
 openai.api_key = "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"
+
+def call (data):
+    # prepare data 
+    df_text = pre_process_data(data)
+    #generate_summary(df_text)
+    find_commonalities_and_differences(df_text['text'].tolist()[0], df_text['text'].tolist()[1])
+    #st.session_state.fact_table = pd.read_csv("commonalities_and_differences.csv", skiprows=2, skipinitialspace=True)
+
+def pre_process_data(data):
+    # Allowing users to upload multiple files and storing the text in a dictionary
+    data_dict = {'filename': [], 'text': []}
+    for uploaded_file in data:
+        text = extract_text(uploaded_file)
+        # Remove all non-word characters (everything except numbers, letters, € and .)
+        text = re.sub(r'[^\w€.]+', ' ', text) 
+        # Remove all runs of whitespace
+        text = re.sub(r'\s+', ' ', text)
+        # Remove leading and trailing whitespace
+        text = text.strip()
+        data_dict['filename'].append(uploaded_file.name)
+        data_dict['text'].append(text)
+
+        #save pdf to pdfs folder
+        with open("pdfs/" + uploaded_file.name, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+
+    st.session_state.text_input = pd.DataFrame(data_dict)
+    return st.session_state.text_input
+    
+
 
 ### Feature 1: Generate Summary of the events
 
@@ -16,14 +48,6 @@ def generate_summary(df):
 
     # Create the text for summary
     text = " ".join(df['text'].tolist())
-    # Remove all non-word characters (everything except numbers and letters)
-    text = re.sub(r'\W+', ' ', text)
-
-    # Remove all runs of whitespace
-    text = re.sub(r'\s+', ' ', text)
-
-    # Remove leading and trailing whitespace
-    text = text.strip()
 
     # Defining the prompt for the summary of the text
     prompt = f"Generieren Sie bitte eine zusammenfassede Übersicht der Sachlage basierend auf dem vorliegenden juristischen Schriftsatz: \" \n{text}. \" Der Schriftsatz beinhaltet jeweils die Sichtweisen des Klägers und des Angeklagten. Berücksichtigen Sie bei der Zusammenfassung die Hauptargumente beider Parteien und liefern Sie eine zusammenhängende Darstellung der rechtlichen Auseinandersetzung. Bitte fassen Sie den Inhalt der Schriftsätze in einer prägnanten, verständlichen Form zusammen."
@@ -49,16 +73,39 @@ def generate_summary(df):
 # how can be differentiated between the briefs?
 # Table format? --> über prompts darstellen: Wie sollen Gemeinsamkeiten und Unterschiede dargestellt werden?
 def find_commonalities_and_differences(text1, text2):
-    try:
-        prompt = f"Find similarities and differences between the following two documents:\n\nText 1: {text1}\n\nText 2: {text2}\n\n:"
-        response = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt=prompt,
-            max_tokens=150
-        )
-        return response.choices[0].text.strip()
-    except Exception as e:
-        return f"Error: {str(e)}"
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+        {"role": "system", "content": "Du bist eine Richterassistentin namens Jasmin. Deine Aufgabe ist es, den Richter zu unterstützen, um ihn effizienter bei der Vorbereitung einer Gerichtsverhandlung zu machen."},
+        {"role": "system", "content": "Du erhältst zwei Schriftsätze vom Kläger und vom Beklagten. Du möchtest herausfinden, was die Gemeinsamkeiten und Unterschiede zwischen den beiden Schriftsätzen sind. Du möchtest eine Tabelle erstellen, die die wichtigesten Fakten in bestrittene und unbestrittene unterteilt. Die Tabelle hat vier Spalten: 'Name der Tatsache (z.B. Tatbestand)', 'bestritten (ja/nein)', 'Sicht des Klägers', 'Sicht des Beklagten'."},
+        {"role": "system", "content": "Eine Tatsache ist immer bestritten, wenn beide Parteien unterschiedlich von dem Geschehen/Umstand berichten. Eine Tatsache ist unbestritten, wenn der Inhalt beider Parteien übereinstimmt. Formatieren die Tabelle in Markdown and und benutze tabs als Trennzeichen."},
+        {"role": "system", "content": "Die Tabelle sollte möglichst MECE (mutually exclusive, collectively exhaustive) sein.  Du erhältst einen reward der Proportional zur Qualität der Tabelle ist. (Kriterien: Länger der Antworten, Tiefe der informationen, MECE)"},
+        {"role": "user", "content": "Text 1" + text1},
+        {"role": "user", "content": "Text 2" + text2},
+        ])
+    text = response['choices'][0]['message']['content']
+    print(text)
+    # find the beginnig of the table at the first | and the end at the last |
+    start = text.find("|")
+    end = text.rfind("|")
+    # extract the table
+    table = text[start:end+1]
+    print("before", table)
+    # Remove the first and last line (empty lines)
+    # Convert the markdown table into a TSV string
+    tsv_string = "\n".join(["\t".join([cell.strip() for cell in row.split("|")[1:-1]]) for row in table.split("\n") if row.strip()])
+    print("after", tsv_string)
+    # Use StringIO to read the TSV string into a DataFrame
+    df = pd.read_csv(StringIO(tsv_string), sep='\t')
+    # save csv
+    with open("commonalities_and_differences.csv", "w") as f:
+        f.write(tsv_string)
+
+    print("df", df)
+    
+    print("df drop", df.drop(df.index[0], inplace=True))
+    st.session_state.fact_table = df
+
 
 
 ### Feature 3: Compare documents by highlighting the briefs
@@ -121,9 +168,3 @@ def highlight_pdf(highlighted_text, context):
 
     # Saving the PDF Output
     pdfIn.save("brief_" + context + "_highlighted.pdf")
-
-
-def call (data):
-    df = pd.DataFrame(data)
-    st.session_state.text_input = df
-    generate_summary(df)

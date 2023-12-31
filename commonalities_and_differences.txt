@@ -1,0 +1,12 @@
+|Name der Tatsache|Bestritten (ja/nein)|Sicht des Klägers|Sicht des Beklagten|
+|-|-|-|-|
+|Kläger ist Eigentümer des Motorrads|nein|Kaufvertrag vom 8. März 1972 (Anlage K1)|Der Kläger hat sein Eigentum bereits dadurch verloren, dass er das Motorrad seinem Sohn geschenkt hat.|
+|Motorrad wurde gestohlen|ja|Fahrzeug wurde dem Sohn des Klägers entwendet (23. März 2021)|Der Beklagte bestreitet den Diebstahl.|
+|Beklagter ist Besitzer des Motorrads|nein|Der Beklagte ist Besitzer des Fahrzeugs|Der Beklagte ist Besitzer des Fahrzeugs.|
+|Kläger fordert Herausgabe des Motorrads|nein|Der Kläger fordert die Herausgabe des Motorrads|Der Beklagte verweigert die Herausgabe des Motorrads.|
+|Motorrad wurde beschädigt (Fuchsschwanz)|nein|Der Fuchsschwanz wurde durch den Radfahrer Matthias Hoster beschädigt (21. Mai 2021)|Der Beklagte gibt an, dass der Schaden am Fuchsschwanz durch den Radfahrer Matthias Hoster verursacht wurde. Er hat den Betrag von 70 € als Ersatz erhalten.|
+|Kläger fordert Zahlung von 70 € |nein|Der Kläger fordert vom Beklagten die Zahlung von 70 €|Der Beklagte weigert sich, den Betrag von 70 € zu zahlen.|
+|Genehmigung der Ausgaben|nein|Kläger und sein Sohn haben die Genehmigung der Ausgaben verweigert (Schreiben vom 19. Juli 2021, Anlage K4)|Der Beklagte hat die Genehmigung der Ausgaben beantragt.|
+|Kosten des Rechtsstreits|nein|Kosten des Rechtsstreits trägt der Beklagte|Kosten des Rechtsstreits trägt der Beklagte.|
+
+Bitte beachten Sie, dass einige Informationen aus den vorhandenen Schriftsätzen fehlen und daher nicht in die Tabelle aufgenommen werden konnten.

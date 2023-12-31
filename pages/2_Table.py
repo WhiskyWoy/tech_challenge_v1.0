@@ -2,8 +2,9 @@ import streamlit as st
 import pandas as pd
 import lorem
 
-if 'df' not in st.session_state:
-    st.session_state.df = pd.DataFrame()
+if 'fact_table' not in st.session_state:
+   st.session_state.fact_table = pd.DataFrame()
+
 
 st.set_page_config(layout="wide")
 
@@ -14,7 +15,7 @@ with st.sidebar:
     
 
 
-if st.session_state.df.empty:
+if st.session_state.fact_table.empty:
     st.title("You need to upload briefs first")
     st.header("Example table of facts")
     #st.write(lorem.text())
@@ -42,6 +43,6 @@ if st.session_state.df.empty:
     st.table(load_data())
 else:
     st.title("Table of Facts")
-    st.table(st.session_state.df)
+    st.table(st.session_state.fact_table)
 
 
