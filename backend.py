@@ -5,6 +5,7 @@ import openai
 import re
 from pdfminer.high_level import extract_text
 from io import StringIO
+import os
 #pip install pymupdf
 import fitz
 
@@ -16,9 +17,8 @@ def call (data):
     # prepare data 
     df_text = pre_process_data(data)
     #generate_summary(df_text)
-    find_commonalities_and_differences(df_text['text'].tolist()[0], df_text['text'].tolist()[1])
-    #st.session_state.fact_table = pd.read_csv("commonalities_and_differences.csv", skiprows=2, skipinitialspace=True)
-
+    #find_commonalities_and_differences(df_text['text'].tolist()[0], df_text['text'].tolist()[1])
+    
 def pre_process_data(data):
     # Allowing users to upload multiple files and storing the text in a dictionary
     data_dict = {'filename': [], 'text': []}
@@ -32,6 +32,9 @@ def pre_process_data(data):
         text = text.strip()
         data_dict['filename'].append(uploaded_file.name)
         data_dict['text'].append(text)
+
+        # clear pdf folder
+        os.remove("pdfs/" + uploaded_file.name)
 
         #save pdf to pdfs folder
         with open("pdfs/" + uploaded_file.name, "wb") as f:
