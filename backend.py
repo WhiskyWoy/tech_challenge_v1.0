@@ -7,7 +7,7 @@ from pdfminer.high_level import extract_text
 from io import StringIO
 import os
 #pip install pymupdf
-# import fitz
+import fitz
 
 
 # initlializing key for gpt calls
@@ -16,8 +16,8 @@ openai.api_key = "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"
 def call (data):
     # prepare data 
     df_text = pre_process_data(data)
-    #generate_summary(df_text)
-    #find_commonalities_and_differences(df_text['text'].tolist()[0], df_text['text'].tolist()[1])
+    generate_summary(df_text)
+    find_commonalities_and_differences(df_text['text'].tolist()[0], df_text['text'].tolist()[1])
     
 def pre_process_data(data):
     # Allowing users to upload multiple files and storing the text in a dictionary
@@ -58,8 +58,9 @@ def generate_summary(df):
     #Calling the OpenAI API to create a summary
     response = openai.ChatCompletion.create(
         model = "gpt-3.5-turbo",
-        messages = prompt
-    )
+        messages = prompt,
+        max_tokens=500 # can be adjusted
+        )
     # response = openai.Completion.create(
     #     engine = "text-davinci-003",
     #     prompt=prompt,
@@ -178,14 +179,31 @@ def highlight_pdf(highlighted_text, context):
 
 
 ### Chatbot Feature
-messages = [{"role": "system", "content": "You are a judge assistant that specializes in offering support services for judges in their work with briefs"}]
+# messages = [{"role": "system", "content": "You are a judge assistant that specializes in offering support services for judges in their work with briefs"}]
 
-def customChatGPT(messages):
-    # messages.append({"role": "user", "content": user_input})
-    response = openai.ChatCompletion.create(
-        model = "gpt-3.5-turbo",
-        messages = messages
+# def customChatGPT(messages):
+#     # messages.append({"role": "user", "content": user_input})
+#     response = openai.ChatCompletion.create(
+#         model = "gpt-3.5-turbo",
+#         messages = messages
+#     )
+#     ChatGPT_reply = response["choices"][0]["message"]["content"]
+#     # messages.append({"role": "assistant", "content": ChatGPT_reply})
+#     return ChatGPT_reply
+
+# generate a response
+def generate_response(prompt):
+    st.session_state['messages'].append({"role": "user", "content": prompt})
+
+    completion = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=st.session_state['messages']
     )
-    ChatGPT_reply = response["choices"][0]["message"]["content"]
-    # messages.append({"role": "assistant", "content": ChatGPT_reply})
-    return ChatGPT_reply
+    response = completion.choices[0].message.content
+    st.session_state['messages'].append({"role": "assistant", "content": response})
+
+    # print(st.session_state['messages'])
+    total_tokens = completion.usage.total_tokens
+    prompt_tokens = completion.usage.prompt_tokens
+    completion_tokens = completion.usage.completion_tokens
+    return response, total_tokens, prompt_tokens, completion_tokens

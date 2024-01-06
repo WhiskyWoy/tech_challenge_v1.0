@@ -2,7 +2,6 @@
 import streamlit as st
 import pandas as pd
 import lorem
-import backend
 
 # Ensuring the information storage across sessions
 if 'event_summary' not in st.session_state:
