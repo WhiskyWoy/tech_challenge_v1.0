@@ -7,7 +7,7 @@ from pdfminer.high_level import extract_text
 from io import StringIO
 import os
 #pip install pymupdf
-import fitz
+# import fitz
 
 
 # initlializing key for gpt calls
@@ -53,14 +53,18 @@ def generate_summary(df):
     text = " ".join(df['text'].tolist())
 
     # Defining the prompt for the summary of the text
-    prompt = f"Generieren Sie bitte eine zusammenfassede Übersicht der Sachlage basierend auf dem vorliegenden juristischen Schriftsatz: \" \n{text}. \" Der Schriftsatz beinhaltet jeweils die Sichtweisen des Klägers und des Angeklagten. Berücksichtigen Sie bei der Zusammenfassung die Hauptargumente beider Parteien und liefern Sie eine zusammenhängende Darstellung der rechtlichen Auseinandersetzung. Bitte fassen Sie den Inhalt der Schriftsätze in einer prägnanten, verständlichen Form zusammen."
+    prompt = f"Generieren Sie bitte eine zusammenfassede Übersicht der Sachlage basierend auf dem vorliegenden juristischen Schriftsatz: \" \n{text}. \" Der Schriftsatz beinhaltet zunächst die Sichtweisen des Klägers, worauf die Positionierung des Angeklagten folgt. Berücksichtigen Sie bei der Zusammenfassung die Hauptargumente beider Parteien und liefern Sie eine zusammenhängende Darstellung der rechtlichen Auseinandersetzung. Bitte fassen Sie den Inhalt der Schriftsätze in einer prägnanten, verständlichen Form zusammen."
 
     #Calling the OpenAI API to create a summary
-    response = openai.Completion.create(
-        engine = "text-davinci-003",
-        prompt=prompt,
-        max_tokens=500 # can be adjusted
+    response = openai.ChatCompletion.create(
+        model = "gpt-3.5-turbo",
+        messages = prompt
     )
+    # response = openai.Completion.create(
+    #     engine = "text-davinci-003",
+    #     prompt=prompt,
+    #     max_tokens=500 # can be adjusted
+    # )
 
     # Extracting the generated summary from the api answer
     generated_summary = response.choices[0].text.strip()
@@ -176,12 +180,12 @@ def highlight_pdf(highlighted_text, context):
 ### Chatbot Feature
 messages = [{"role": "system", "content": "You are a judge assistant that specializes in offering support services for judges in their work with briefs"}]
 
-def customChatGPT(user_input):
-    messages.append({"role": "user", "content": user_input})
+def customChatGPT(messages):
+    # messages.append({"role": "user", "content": user_input})
     response = openai.ChatCompletion.create(
         model = "gpt-3.5-turbo",
         messages = messages
     )
     ChatGPT_reply = response["choices"][0]["message"]["content"]
-    messages.append({"role": "assistant", "content": ChatGPT_reply})
+    # messages.append({"role": "assistant", "content": ChatGPT_reply})
     return ChatGPT_reply
