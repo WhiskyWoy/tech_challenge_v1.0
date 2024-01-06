@@ -27,6 +27,7 @@ st.markdown(
     - **Fact extraction** from both parties' briefs
     - **Case summary** generation
     - **Briefs** comparisons side by side
+    - **Interactive communication** with Jasmin
 """
 )
 

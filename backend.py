@@ -171,3 +171,17 @@ def highlight_pdf(highlighted_text, context):
 
     # Saving the PDF Output
     pdfIn.save("brief_" + context + "_highlighted.pdf")
+
+
+### Chatbot Feature
+messages = [{"role": "system", "content": "You are a judge assistant that specializes in offering support services for judges in their work with briefs"}]
+
+def customChatGPT(user_input):
+    messages.append({"role": "user", "content": user_input})
+    response = openai.ChatCompletion.create(
+        model = "gpt-3.5-turbo",
+        messages = messages
+    )
+    ChatGPT_reply = response["choices"][0]["message"]["content"]
+    messages.append({"role": "assistant", "content": ChatGPT_reply})
+    return ChatGPT_reply
