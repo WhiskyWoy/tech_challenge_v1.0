@@ -2,6 +2,9 @@
 import streamlit as st
 import pandas as pd
 import lorem
+import sys
+sys.path.append("..")
+import backend
 
 # Ensuring the information storage across sessions
 if 'event_summary' not in st.session_state:
@@ -9,7 +12,13 @@ if 'event_summary' not in st.session_state:
 
 # Using "with" notation
 with st.sidebar:
-    download = st.download_button("Download pdf", "Good Job!")
+    #download output.pdf file
+    st.download_button(
+    "Download PDF",
+    data=st.session_state.pdf,
+    file_name='Ganzheitliche Übersicht der Schriftsätze.pdf',
+    mime='application/pdf'
+)
     textsize = st.slider("Text size", 1, 10, 2)
     
 if st.session_state.event_summary.empty:

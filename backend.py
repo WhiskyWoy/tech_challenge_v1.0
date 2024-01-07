@@ -5,9 +5,12 @@ import openai
 import re
 from pdfminer.high_level import extract_text
 from io import StringIO
+import io
 import os
 #pip install pymupdf
 import fitz
+from fpdf import FPDF
+import lorem
 
 
 # initlializing key for gpt calls
@@ -18,6 +21,7 @@ def call (data):
     df_text = pre_process_data(data)
     generate_summary(df_text['text'].tolist()[0], df_text['text'].tolist()[1])
     find_commonalities_and_differences(df_text['text'].tolist()[0], df_text['text'].tolist()[1])
+    create_pdf()
     
 def pre_process_data(data):
     # Allowing users to upload multiple files and storing the text in a dictionary
@@ -48,9 +52,6 @@ def pre_process_data(data):
 ### Feature 1: Generate Summary of the events
 
 def generate_summary(text1, text2):
-
-    # Defining the prompt for the summary of the text
-    # prompt = f"Generieren Sie bitte eine zusammenfassede Übersicht der Sachlage basierend auf dem vorliegenden juristischen Schriftsatz: \" \n{text}. \" Der Schriftsatz beinhaltet zunächst die Sichtweisen des Klägers, worauf die Positionierung des Angeklagten folgt. Berücksichtigen Sie bei der Zusammenfassung die Hauptargumente beider Parteien und liefern Sie eine zusammenhängende Darstellung der rechtlichen Auseinandersetzung. Bitte fassen Sie den Inhalt der Schriftsätze in einer prägnanten, verständlichen Form zusammen."
 
     #Calling the OpenAI API to create a summary
     response = openai.ChatCompletion.create(
@@ -200,3 +201,56 @@ def generate_response(prompt):
     prompt_tokens = completion.usage.prompt_tokens
     completion_tokens = completion.usage.completion_tokens
     return response, total_tokens, prompt_tokens, completion_tokens
+
+def create_pdf():
+    #text = st.session_state.event_summary['summary']
+    df = st.session_state.fact_table 
+    #df = pd.read_excel("fact_table.xlsx")
+    #use first column as index and drop it
+    #df.set_index(df.columns[0], inplace=True)
+    text = lorem.text()
+
+    pdf = FPDF()
+    pdf.add_page()
+
+    #pdf.set_font("Arial", size=12)
+    pdf.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
+    pdf.add_font('DejaVu', 'B', 'DejaVuSans-Bold.ttf', uni=True)
+    pdf.set_font('DejaVu', 'B', 16)
+
+    pdf.cell(200, 10, txt="Event Summary", ln=1, align="C")
+    pdf.set_font('DejaVu', '', 14)
+    pdf.cell(200, 10, txt=" ", ln=1, align="C")
+    #pdf.multi_cell(200, 10, txt=text.tolist()[0], ln=1, align="L")
+    pdf.multi_cell(200, 10, txt=text, align="L")
+    pdf.cell(200, 10, txt=" ", ln=1, align="C")
+    pdf.cell(200, 10, txt=" ", ln=1, align="C")
+    pdf.cell(200, 10, txt=" ", ln=1, align="C")
+    pdf.set_font('DejaVu', 'B', 16)
+    pdf.cell(200, 10, txt="Table of Facts", ln=1, align="C")
+    pdf.set_font('DejaVu', '', 14)
+    pdf.cell(200, 10, txt=" ", ln=1, align="C")
+
+    # Add a cell for each column header
+    for i in range(len(df.columns)):
+        pdf.cell(40, 10, txt=df.columns[i], ln=0, align='C')
+
+    # Line break
+    pdf.ln(10)
+
+    # Add a cell for each item of data
+    for i in range(len(df)):
+        for j in range(len(df.columns)):
+            pdf.cell(40, 10, txt=str(df.iloc[i, j]), ln=0, align='C')
+        pdf.ln(10)
+
+  
+    #pdf.output("output.pdf")
+
+    
+    # Save the PDF to a bytes object
+    #pdf_out = io.BytesIO()
+    #pdf.output(dest='S')
+    #pdf_data = pdf_out.getvalue()
+    st.session_state.pdf = pdf.output(dest='S').encode('latin-1')
+

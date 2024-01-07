@@ -21,16 +21,22 @@ def displayPDF(file, col):
 
 # Using "with" notation
 with st.sidebar:
-    download = st.download_button("Download pdf", "Good Job!")
+    #download output.pdf file
+    st.download_button(
+    "Download PDF",
+    data=st.session_state.pdf,
+    file_name='Ganzheitliche Übersicht der Schriftsätze.pdf',
+    mime='application/pdf'
+)
     textsize = st.slider("Text size", 1, 10, 2)
     
-col1, col2 = st.columns(2)
 
 if st.session_state.text_input.empty:
     st.title("You need to upload briefs first")
 
 else:
     st.title("Comparison of both briefs")
+    col1, col2 = st.columns(2)
     col1.header("Plaintiff")
     # open pdf from pdf folder
     displayPDF("pdfs/brief_plaintiff.pdf", col1)
