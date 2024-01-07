@@ -16,7 +16,7 @@ openai.api_key = "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"
 def call (data):
     # prepare data 
     df_text = pre_process_data(data)
-    generate_summary(df_text)
+    generate_summary(df_text['text'].tolist()[0], df_text['text'].tolist()[1])
     find_commonalities_and_differences(df_text['text'].tolist()[0], df_text['text'].tolist()[1])
     
 def pre_process_data(data):
@@ -47,33 +47,26 @@ def pre_process_data(data):
 
 ### Feature 1: Generate Summary of the events
 
-def generate_summary(df):
-
-    # Create the text for summary
-    text = " ".join(df['text'].tolist())
+def generate_summary(text1, text2):
 
     # Defining the prompt for the summary of the text
-    prompt = f"Generieren Sie bitte eine zusammenfassede Übersicht der Sachlage basierend auf dem vorliegenden juristischen Schriftsatz: \" \n{text}. \" Der Schriftsatz beinhaltet zunächst die Sichtweisen des Klägers, worauf die Positionierung des Angeklagten folgt. Berücksichtigen Sie bei der Zusammenfassung die Hauptargumente beider Parteien und liefern Sie eine zusammenhängende Darstellung der rechtlichen Auseinandersetzung. Bitte fassen Sie den Inhalt der Schriftsätze in einer prägnanten, verständlichen Form zusammen."
+    # prompt = f"Generieren Sie bitte eine zusammenfassede Übersicht der Sachlage basierend auf dem vorliegenden juristischen Schriftsatz: \" \n{text}. \" Der Schriftsatz beinhaltet zunächst die Sichtweisen des Klägers, worauf die Positionierung des Angeklagten folgt. Berücksichtigen Sie bei der Zusammenfassung die Hauptargumente beider Parteien und liefern Sie eine zusammenhängende Darstellung der rechtlichen Auseinandersetzung. Bitte fassen Sie den Inhalt der Schriftsätze in einer prägnanten, verständlichen Form zusammen."
 
     #Calling the OpenAI API to create a summary
     response = openai.ChatCompletion.create(
         model = "gpt-3.5-turbo",
-        messages = prompt,
-        max_tokens=500 # can be adjusted
-        )
-    # response = openai.Completion.create(
-    #     engine = "text-davinci-003",
-    #     prompt=prompt,
-    #     max_tokens=500 # can be adjusted
-    # )
+        messages=[
+        {"role": "system", "content": "Du bist eine Richterassistentin namens Jasmin. Deine Aufgabe ist es, den Richter zu unterstützen, um ihn effizienter bei der Vorbereitung einer Gerichtsverhandlung zu machen."},
+        {"role": "system", "content": "Du erhältst zwei Schriftsätze vom Kläger und vom Beklagten. Du möchtest herausfinden, was die Gemeinsamkeiten und Unterschiede zwischen den beiden Schriftsätzen sind. Du möchtest die wichtigsten Hauptargumente beider Parteien zusammenfassen und eine zusammenhängende Darstellung der rechtlichen Auseinandersetzung liefern."}, 
+        {"role": "system", "content": "Bitte fassen Sie den Inhalt der Schriftsätze in einer prägnanten, verständlichen Form zusammen."},
+        {"role": "user", "content": "Text 1" + text1},
+        {"role": "user", "content": "Text 2" + text2},
+        ])
 
     # Extracting the generated summary from the api answer
-    generated_summary = response.choices[0].text.strip()
-
-    #create a new df
-    df2= pd.DataFrame({'text': [text], 'summary': [generated_summary]})
-
-    st.session_state.event_summary = df2
+    generated_summary = response['choices'][0]['message']['content']
+    
+    st.session_state.event_summary = generated_summary
 
 ### Feature 2: Overview of disputed and undisputed facts
 
