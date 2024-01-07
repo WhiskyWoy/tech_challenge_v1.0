@@ -4,12 +4,13 @@ import lorem
 
 if 'fact_table' not in st.session_state:
    st.session_state.fact_table = pd.DataFrame()
+if 'pdf' not in st.session_state:
+    #empty binary data
+    st.session_state.pdf = b""
 
 
 st.set_page_config(layout="wide")
 
-# Using "with" notation
-# Using "with" notation
 with st.sidebar:
     #download output.pdf file
     st.download_button(
@@ -18,20 +19,15 @@ with st.sidebar:
     file_name='Ganzheitliche Übersicht der Schriftsätze.pdf',
     mime='application/pdf'
 )
-    textsize = st.slider("Text size", 1, 10, 2)
     
 
 
 if st.session_state.fact_table.empty:
-    st.title("You need to upload briefs first")
-    st.header("Example table of facts")
+    st.title("Es wurden noch keine Schriftsätze hochgeladen")
+    st.header("Beispiel Tabelle:")
     #st.write(lorem.text())
     #st.markdown('<font size=10>lorem.text()</font>')
 
-
-    # Define the font size variable
-    font_size = textsize
-    print("reload 2")
 
     @st.cache_data
     def text():
@@ -42,7 +38,7 @@ if st.session_state.fact_table.empty:
 
     @st.cache_data
     def load_data():
-        df = pd.read_excel("fact_table.xlsx")
+        df = pd.read_excel("test_data/fact_table.xlsx")
         #use first column as index and drop it
         df.set_index(df.columns[0], inplace=True)
         return df
@@ -55,7 +51,7 @@ if st.session_state.fact_table.empty:
     #st.dataframe(df.style.set_properties(**{'font-weight': 'bold'}))
     st.dataframe(df)
 else:
-    st.title("Table of Facts")
+    st.title("Tabelle mit den wichtigsten Fakten ⚖️")
     df = st.session_state.fact_table
     print(df)
     #make headline bold with styler

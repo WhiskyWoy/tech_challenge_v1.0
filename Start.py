@@ -6,16 +6,12 @@ import backend
 # Configuring the default settings of the page
 st.set_page_config(
     page_title="Start Page",
-    page_icon="👋",
+    page_icon="⚖️",
     layout="wide",
 )
 
-# Ensuring the information storage across sessions
-if 'df' not in st.session_state:
-    st.session_state.df = pd.DataFrame()
-
 # Formatting of the page
-st.write("# Welcome to Jasmin, your AI Judge Assistant! 👋")
+st.write("# Welcome to Jasmin, your AI Judge Assistant! ⚖️")
 
 st.sidebar.write("Upload your document and then select a feature above.")
 

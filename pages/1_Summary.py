@@ -8,9 +8,10 @@ import backend
 
 # Ensuring the information storage across sessions
 if 'event_summary' not in st.session_state:
-    st.session_state.event_summary = pd.DataFrame()
+    st.session_state.event_summary = None
+if 'pdf' not in st.session_state:
+    st.session_state.pdf = b""
 
-# Using "with" notation
 with st.sidebar:
     #download output.pdf file
     st.download_button(
@@ -19,25 +20,22 @@ with st.sidebar:
     file_name='Ganzheitliche Übersicht der Schriftsätze.pdf',
     mime='application/pdf'
 )
-    textsize = st.slider("Text size", 1, 10, 2)
     
-if st.session_state.event_summary.empty:
-    st.title("You need to upload briefs first")
-    st.header("Example Summary:")
-    #st.write(lorem.text())
-    #st.markdown('<font size=10>lorem.text()</font>')
+if st.session_state.event_summary == None:
+    st.title("Es wurden noch keine Schriftsätze hochgeladen")
+    # st.header("Example Summary:")
+    # #st.write(lorem.text())
+    # #st.markdown('<font size=10>lorem.text()</font>')
 
 
-    # Define the font size variable
-    font_size = textsize
-    print("reload 1")
+    # # Define the font size variable
 
-    @st.cache_data
-    def text():
-        return lorem.text()
+    # @st.cache_data
+    # def text():
+    #     return lorem.text()
 
-    # Use st.markdown with inline CSS to change the font size
-    st.markdown(f'<div style="font-size: {font_size*10}px;">{text()}</div>', unsafe_allow_html=True)
+    # # Use st.markdown with inline CSS to change the font size
+    # st.write(text())
 else:
-    st.title("Event Summary")
-    st.write(st.session_state.event_summary["summary"].iloc[0])
+    st.title("Zusammenfassung der Schriftsätze ⚖️")
+    st.write(st.session_state.event_summary)
