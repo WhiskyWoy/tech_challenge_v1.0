@@ -9,8 +9,15 @@ if 'fact_table' not in st.session_state:
 st.set_page_config(layout="wide")
 
 # Using "with" notation
+# Using "with" notation
 with st.sidebar:
-    download = st.download_button("Download pdf", "Good Job!")
+    #download output.pdf file
+    st.download_button(
+    "Download PDF",
+    data=st.session_state.pdf,
+    file_name='Ganzheitliche Übersicht der Schriftsätze.pdf',
+    mime='application/pdf'
+)
     textsize = st.slider("Text size", 1, 10, 2)
     
 
@@ -40,9 +47,20 @@ if st.session_state.fact_table.empty:
         df.set_index(df.columns[0], inplace=True)
         return df
 
-    st.table(load_data())
+    #st.table(load_data())
+    df = load_data()
+    print(df)
+    #df.style.set_properties(**{'font-weight': 'bold'}, subset=['Headline'])
+    df = df.style.set_properties(**{'font-weight': 'bold'}, subset=df.columns)
+    #st.dataframe(df.style.set_properties(**{'font-weight': 'bold'}))
+    st.dataframe(df)
 else:
     st.title("Table of Facts")
-    st.table(st.session_state.fact_table)
+    df = st.session_state.fact_table
+    print(df)
+    #make headline bold with styler
+    df.style.set_properties(**{'font-weight': 'bold'}, subset=['Headline'])
+
+    st.dataframe(df)
 
 
