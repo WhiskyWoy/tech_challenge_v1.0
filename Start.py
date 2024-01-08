@@ -2,6 +2,7 @@
 import streamlit as st
 import pandas as pd
 import backend
+import os
 
 # Configuring the default settings of the page
 st.set_page_config(
@@ -28,14 +29,33 @@ st.markdown(
 )
 
 # Allowing users to upload multiple files
-uploaded_files = st.file_uploader("Choose a Text file", accept_multiple_files=True)
-    
-# In the case of a successful upload passing the data dictionary to the backend
-uploaded = st.button('Upload', key='up')
-if uploaded and len(uploaded_files) > 0:
-    st.success('Uploaded successfully, proccessing...')
-    backend.call(uploaded_files)
-    st.success('Processed successfully, please select a feature above.')
-    st.sidebar.success("Select a feature above.")
-elif uploaded and len(uploaded_files) == 0:
-    st.error('Please upload a file first.')
+upload_plaintiff = st.file_uploader("Upload plaintiff file")
+upload_defendant = st.file_uploader("Upload defendant file")
+
+if upload_plaintiff and upload_defendant:
+    upload_button = st.button("Upload")
+    if upload_button:
+        st.success("Both documents successfully added!")
+        uploaded_files = [upload_plaintiff, upload_defendant]
+        # Define the paths for saving the files
+        directory_plaintiff = "pdfs"
+        directory_defendant = "pdfs"
+
+        # Ensure the directories exist, create them if not
+        os.makedirs(directory_plaintiff, exist_ok=True)
+        os.makedirs(directory_defendant, exist_ok=True)
+
+        # Construct the full file paths
+        path_plaintiff = os.path.join(directory_plaintiff, "brief_plaintiff.pdf")
+        path_defendant = os.path.join(directory_defendant, "brief_defendant.pdf")
+
+        # Save the plaintiff file
+        with open(path_plaintiff, "wb") as f_plaintiff:
+            f_plaintiff.write(upload_plaintiff.getbuffer())
+
+        # Save the defendant file
+        with open(path_defendant, "wb") as f_defendant:
+            f_defendant.write(upload_defendant.getbuffer())
+        backend.call(uploaded_files)
+        st.success("Processed successfully, please select a feature above.")
+        st.sidebar.success("Select a feature above.")

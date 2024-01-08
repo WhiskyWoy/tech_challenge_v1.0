@@ -39,6 +39,6 @@ else:
     col1, col2 = st.columns(2)
     col1.header("Plaintiff")
     # open pdf from pdf folder
-    displayPDF("pdfs/brief_plaintiff.pdf", col1)
+    displayPDF("pdfs/brief_plaintiff_highlighted.pdf", col1)
     col2.header("Defendant")
-    displayPDF("pdfs/brief_defendant.pdf", col2)
+    displayPDF("pdfs/brief_defendant_highlighted.pdf", col2)
