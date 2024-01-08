@@ -22,7 +22,7 @@ openai.api_key = "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"
 def call (data):
     # prepare data 
     pre_process_data(data)
-    generate_summary()
+    #generate_summary()
     find_commonalities_and_differences()
     create_pdf()
     
@@ -85,7 +85,7 @@ def find_commonalities_and_differences():
         {"role": "system", "content": "Du bist eine Richterassistentin namens Jasmin. Deine Aufgabe ist es, den Richter zu unterstützen, um ihn effizienter bei der Vorbereitung einer Gerichtsverhandlung zu machen."},
         {"role": "system", "content": "Du erhältst zwei Schriftsätze vom Kläger und vom Beklagten. Du möchtest herausfinden, was die Gemeinsamkeiten und Unterschiede zwischen den beiden Schriftsätzen sind. Du möchtest eine Tabelle erstellen, die die wichtigesten Fakten in bestrittene und unbestrittene unterteilt. Die Tabelle hat vier Spalten: 'Name der Tatsache (z.B. Tatbestand)', 'bestritten (ja/nein)', 'Sicht des Klägers', 'Sicht des Beklagten'."},
         {"role": "system", "content": "Eine Tatsache ist immer bestritten, wenn beide Parteien unterschiedlich von dem Geschehen/Umstand berichten. Eine Tatsache ist unbestritten, wenn der Inhalt beider Parteien übereinstimmt. Formatieren die Tabelle in Markdown and und benutze tabs als Trennzeichen."},
-        {"role": "system", "content": "Die Tabelle sollte möglichst MECE (mutually exclusive, collectively exhaustive) sein.  Du erhältst einen reward der Proportional zur Qualität der Tabelle ist. (Kriterien: Länger der Antworten, Tiefe der informationen, MECE)"},
+        {"role": "system", "content": "Die Tabelle sollte möglichst vollständig sein.  Du erhältst einen reward der Proportional zur Qualität der Tabelle ist. (Kriterien: Länger der Antworten, Tiefe der informationen, MECE). Sei bitte ausführlich und genau."},
         {"role": "user", "content": "Text 1" + st.session_state.text1},
         {"role": "user", "content": "Text 2" + st.session_state.text2},
         ])
