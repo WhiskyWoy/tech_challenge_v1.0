@@ -15,6 +15,7 @@ import lorem
 import matplotlib.pyplot as plt
 from pandas.plotting import table
 import textwrap
+import PyPDF2
 
 
 # initlializing key for gpt calls
@@ -24,7 +25,13 @@ def call (data):
     # prepare data 
     pre_process_data(data)
     #generate_summary()
-    df_table = find_commonalities_and_differences()
+    #df_table = find_commonalities_and_differences()
+    df_table = pd.read_csv("commonalities_and_differences_save.csv", sep='\t')
+    df_table.drop(df_table.index[0], inplace=True)
+    st.session_state.fact_table = df_table
+    # read event summary txt#
+    with open("event_summary.txt", "r") as f:
+        st.session_state.event_summary = f.read()
     highlight_pdf(df_table, True)
     create_pdf()
 
@@ -73,6 +80,10 @@ def generate_summary():
 
     # Extracting the generated summary from the api answer
     generated_summary = response['choices'][0]['message']['content']
+
+    # save as txt
+    with open("event_summary.txt", "w") as f:
+        f.write(generated_summary)
 
     st.session_state.event_summary = generated_summary
 
@@ -392,42 +403,62 @@ def create_pdf():
     pdf.add_page()
     pdf.add_font('DejaVu', '', 'fonts/DejaVuSansCondensed.ttf', uni=True)
     pdf.add_font('DejaVu', 'B', 'fonts/DejaVuSans-Bold.ttf', uni=True)
-    pdf.set_font('DejaVu', 'B', 16)
+    pdf.set_font('DejaVu', 'B', 14)
 
-    pdf.cell(200, 10, txt="Event Summary", ln=1, align="C")
-    pdf.set_font('DejaVu', '', 12)
+    pdf.cell(200, 10, txt="Zusammenfassung", ln=1, align="C")
+    pdf.set_font('DejaVu', '', 10)
     pdf.cell(200, 10, txt=" ", ln=1, align="C")
     #pdf.multi_cell(200, 10, txt=text.tolist()[0], ln=1, align="L")
-    pdf.multi_cell(150, 10, txt=text, align="L")
-    pdf.cell(200, 10, txt=" ", ln=1, align="C")
-    pdf.cell(200, 10, txt=" ", ln=1, align="C")
-    pdf.cell(200, 10, txt=" ", ln=1, align="C")
-    pdf.set_font('DejaVu', 'B', 16)
-    pdf.cell(200, 10, txt="Table of Facts", ln=1, align="C")
-    pdf.set_font('DejaVu', '', 14)
-    pdf.cell(200, 10, txt=" ", ln=1, align="C")
+    pdf.multi_cell(175, 5, txt=text, align="L")
+    #pdf.cell(200, 10, txt=" ", ln=1, align="C")
+    #pdf.cell(200, 10, txt=" ", ln=1, align="C")
+    #pdf.cell(200, 10, txt=" ", ln=1, align="C")
+    #pdf.set_font('DejaVu', 'B', 14)
+    #pdf.cell(200, 10, txt="Tabelle der wichtigsten Fakten", ln=1, align="C")
+    #pdf.set_font('DejaVu', '', 14)
+    #pdf.cell(200, 10, txt=" ", ln=1, align="C")
 
-    fig, ax = plt.subplots(figsize=(20, 10)) # set size frame
+    fig, ax = plt.subplots(figsize=(24, 12)) # set size frame
     ax.xaxis.set_visible(False)  # hide the x axis
     ax.yaxis.set_visible(False)  # hide the y axis
     ax.set_frame_on(False)  # no visible frame
+    # add title
+    ax.set_title('Tabelle der wichtigsten Fakten', fontsize=24, color='black', position=(0.5, 1.0))
     tabla = table(ax, df, loc='center', cellLoc='center')  # where df is your data frame
     tabla.auto_set_font_size(True) # Activate set fontsize manually
     #tabla.set_fontsize(10) # if ++fontsize is necessary ++colWidths
-    tabla.scale(1.2, 4) # Table size
+    tabla.scale(1.2, 5.5) # Table size
     plt.savefig('mytable.png')
 
     #new page
     pdf.add_page(orientation='L')
 
+    
+
     pdf.image('mytable.png', x = 0, y = 0, w = 300, h = 200)
 
-    #pdf.output("output.pdf")
+    pdf.output("output.pdf")
 
+    merger = PyPDF2.PdfMerger()
+    # List of PDF files to merge
+    pdf_files = ["output.pdf", "pdfs/brief_plaintiff_highlighted.pdf", "pdfs/brief_defendant_highlighted.pdf"]
 
+    # Loop through the PDF files and add each one to the merger
+    for pdf_file in pdf_files:
+        with open(pdf_file, "rb") as fileobj:
+            merger.append(fileobj)
+
+    # Write the merged PDF to a new file
+    with open("merged.pdf", "wb") as outfile:
+        merger.write(outfile)
+
+    #read pdf as bytes
+    with open("merged.pdf", "rb") as f:
+        st.session_state.pdf = f.read()
+        
     # Save the PDF to a bytes object
     #pdf_out = io.BytesIO()
     #pdf.output(dest='S')
     #pdf_data = pdf_out.getvalue()
-    st.session_state.pdf = pdf.output(dest='S').encode('latin-1')
+    #st.session_state.pdf = pdf.output(dest='S').encode('latin-1')
 

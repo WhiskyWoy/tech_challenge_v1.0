@@ -14,7 +14,7 @@ st.set_page_config(layout="wide")
 with st.sidebar:
     #download output.pdf file
     st.download_button(
-    "Download PDF",
+    "PDF Herunterladen",
     data=st.session_state.pdf,
     file_name='Ganzheitliche Übersicht der Schriftsätze.pdf',
     mime='application/pdf'

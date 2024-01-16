@@ -24,7 +24,7 @@ def displayPDF(file, col):
 with st.sidebar:
     #download output.pdf file
     st.download_button(
-    "Download PDF",
+    "PDF Herunterladen",
     data=st.session_state.pdf,
     file_name='Ganzheitliche Übersicht der Schriftsätze.pdf',
     mime='application/pdf'
@@ -37,8 +37,8 @@ if st.session_state.text_df.empty:
 else:
     st.title("Vergleich der Schriftsätze ⚖️")
     col1, col2 = st.columns(2)
-    col1.header("Plaintiff")
+    col1.header("Kläger")
     # open pdf from pdf folder
     displayPDF("pdfs/brief_plaintiff_highlighted.pdf", col1)
-    col2.header("Defendant")
+    col2.header("Beklagter")
     displayPDF("pdfs/brief_defendant_highlighted.pdf", col2)

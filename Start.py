@@ -6,36 +6,37 @@ import os
 
 # Configuring the default settings of the page
 st.set_page_config(
-    page_title="Start Page",
+    page_title="Startseite",
     page_icon="⚖️",
     layout="wide",
 )
 
 # Formatting of the page
-st.write("# Welcome to Jasmin, your AI Judge Assistant! ⚖️")
+st.write("# Jasmin heißt Sie willkommen, Ihre AI-Assistentin! ⚖️")
 
-st.sidebar.write("Upload your document and then select a feature above.")
+st.sidebar.write("Laden Sie Ihre Dokumente hoch und wählen Sie dann eine Funktion aus.")
 
 st.markdown(
     """
-    Jasmin is an AI assistant built specifically for
-    helping judges in preparing for court hearings in civil cases.
-    Key features include:
-    - **Fact extraction** from both parties' briefs
-    - **Case summary** generation
-    - **Briefs** comparisons side by side
-    - **Interactive communication** with Jasmin
+    Jasmin ist eine KI-Assistentin, die speziell dafür entwickelt wurde,
+    Richtern bei der Vorbereitung auf Gerichtsverhandlungen in Zivilsachen zu helfen.
+    Zu den Hauptfunktionen gehören:
+    - **Zusammenfassung:** steigen Sie schnell in den Fall ein
+    - **Übersicht der Fakten:** analysieren Sie die wichtigsten Fakten des Falls
+    - **Vergleich:** betrachten Sie die gekennzeichneten Schriftsätze nebeneinander
+    - **Interaktive Kommunikation:** fragen Sie Jasmin Ihre Fragen zum Fall
 """
 )
 
 # Allowing users to upload multiple files
-upload_plaintiff = st.file_uploader("Upload plaintiff file")
-upload_defendant = st.file_uploader("Upload defendant file")
+upload_plaintiff = st.file_uploader("Kläger Schriftsatz")
+upload_defendant = st.file_uploader("Beklagter Schriftsatz")
 
 if upload_plaintiff and upload_defendant:
-    upload_button = st.button("Upload")
+    upload_button = st.button("Hochladen")
     if upload_button:
-        st.success("Both documents successfully added!")
+        st.success("Beide Dokumente wurden erfolgreich hochgeladen!")
+        st.success("Verarbeitung läuft...")
         uploaded_files = [upload_plaintiff, upload_defendant]
         # Define the paths for saving the files
         directory_plaintiff = "pdfs"
@@ -57,5 +58,5 @@ if upload_plaintiff and upload_defendant:
         with open(path_defendant, "wb") as f_defendant:
             f_defendant.write(upload_defendant.getbuffer())
         backend.call(uploaded_files)
-        st.success("Processed successfully, please select a feature above.")
-        st.sidebar.success("Select a feature above.")
+        st.success("Verarbeitung erfolgreich! Wähle eine Option aus der Sidebar aus.")
+        st.sidebar.success("Wähle eine Option aus der Sidebar aus.")
