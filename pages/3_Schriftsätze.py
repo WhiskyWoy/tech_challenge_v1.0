@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import lorem
 import pybase64
+import ui
 
 if 'text_df' not in st.session_state:
     st.session_state.text_df = pd.DataFrame()
@@ -21,6 +22,7 @@ def displayPDF(file, col):
     # Displaying File
     col.markdown(pdf_display, unsafe_allow_html=True)
 
+ui.add_logo()
 with st.sidebar:
     #download output.pdf file
     st.download_button(

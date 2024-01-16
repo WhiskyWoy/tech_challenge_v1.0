@@ -4,9 +4,12 @@
 import streamlit as st
 from backend import generate_response
 from streamlit_chat import message
+import ui
+
+ui.add_logo()
 
 # Setting page title and header
-st.set_page_config(page_title="Jasmin")
+#st.set_page_config(page_title="Jasmin")
 st.markdown("<h1 style='text-align: center;'>Jasmin - Die Richterassistentin</h1>", unsafe_allow_html=True)
 
 # Initialise session state variables
@@ -19,8 +22,8 @@ if 'messages' not in st.session_state:
         {"role": "system", "content": "Du bist eine Richterassistentin namens Jasmin. Deine Aufgabe ist es, den Richter zu unterstützen, um ihn effizienter bei der Vorbereitung einer Gerichtsverhandlung zu machen."},
         {"role": "system", "content": "Du erhältst zwei Schriftsätze vom Kläger und vom Beklagten. Du sollst die Schriftsätze lesen bei Fragen dich auf den Inhalt der Schriftsätze beziehen."},
         {"role": "system", "content": "Bitte fassen Sie den Inhalt der Schriftsätze in einer prägnanten, verständlichen Form zusammen."},
-        {"role": "user", "content": "Text 1" + st.session_state.text1},
-        {"role": "user", "content": "Text 2" + st.session_state.text2},
+        #{"role": "user", "content": "Text 1" + st.session_state.text1},
+        #{"role": "user", "content": "Text 2" + st.session_state.text2},
     ]
 if 'cost' not in st.session_state:
     st.session_state['cost'] = []

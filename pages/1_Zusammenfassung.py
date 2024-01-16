@@ -4,7 +4,8 @@ import pandas as pd
 import lorem
 import sys
 sys.path.append("..")
-import backend
+import ui
+
 
 # Ensuring the information storage across sessions
 if 'event_summary' not in st.session_state:
@@ -22,6 +23,7 @@ with st.sidebar:
 )
     
 if st.session_state.event_summary == None:
+    ui.add_logo()
     st.title("Es wurden noch keine Schriftsätze hochgeladen")
     # st.header("Example Summary:")
     # #st.write(lorem.text())
@@ -37,5 +39,6 @@ if st.session_state.event_summary == None:
     # # Use st.markdown with inline CSS to change the font size
     # st.write(text())
 else:
+    ui.add_logo()
     st.title("Zusammenfassung der Schriftsätze ⚖️")
     st.write(st.session_state.event_summary)

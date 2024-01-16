@@ -3,13 +3,15 @@ import streamlit as st
 import pandas as pd
 import backend
 import os
-
+import ui
 # Configuring the default settings of the page
 st.set_page_config(
     page_title="Startseite",
     page_icon="⚖️",
     layout="wide",
 )
+
+ui.add_logo()
 
 # Formatting of the page
 st.write("# Jasmin heißt Sie willkommen, Ihre AI-Assistentin! ⚖️")
@@ -27,6 +29,7 @@ st.markdown(
     - **Interaktive Kommunikation:** fragen Sie Jasmin Ihre Fragen zum Fall
 """
 )
+
 
 # Allowing users to upload multiple files
 upload_plaintiff = st.file_uploader("Kläger Schriftsatz")
@@ -57,6 +60,6 @@ if upload_plaintiff and upload_defendant:
         # Save the defendant file
         with open(path_defendant, "wb") as f_defendant:
             f_defendant.write(upload_defendant.getbuffer())
-        backend.call(uploaded_files)
+        backend.call(uploaded_files, backend.gpt_4)
         st.success("Verarbeitung erfolgreich! Wähle eine Option aus der Sidebar aus.")
         st.sidebar.success("Wähle eine Option aus der Sidebar aus.")
