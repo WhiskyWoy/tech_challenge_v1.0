@@ -22,12 +22,12 @@ import PyPDF2
 gpt_4 = False
 
 if gpt_4:
-    openai.api_key = "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" #GPT 4
+    openai.api_key = "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" # GPT 4
 else:
     openai.api_key = "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"
 
 
-def call (data, gpt_4):
+def call(data, gpt_4):
     # prepare data 
     pre_process_data(data)
     print("preprocess done")
@@ -35,7 +35,7 @@ def call (data, gpt_4):
     print("summary done")
     find_commonalities_and_differences(gpt_4)
     print("commonalities done")
-    highlight_pdf()
+    compare_pdfs(gpt_4)
     print("highlight done")
     create_pdf()
     print("pdf done")
@@ -148,7 +148,7 @@ def find_commonalities_and_differences(gpt_4):
     return df
 
 
-# read out pdfs (double work, should be removed in the end)
+# read out pdfs
 def read_pdf(pdf_path):
     pdf = fitz.open(pdf_path)
 
@@ -163,11 +163,63 @@ def read_pdf(pdf_path):
 
     return full_text
 
+# get the original text from full text
+def get_source(gpt_4, full_text, list_facts, context):
 
-### Feature 3: Compare documents by highlighting the briefs
-# input: text to be highlighted (as list), plaintiff/ defendant as context
-def highlight_pdf():
-    df = st.session_state.fact_table
+    if gpt_4:
+        model = "gpt-4-1106-preview"
+    else:
+        model = "gpt-3.5-turbo"
+
+    if context == "plaintiff":
+        role = "Du erhältst einen originalen Schriftsatz von einem Kläger sowie eine Liste mit Stichpunkten, welche einen Fakt innerhalb des Dokuments beschreiben. Du möchtest die Textstellen im originalen Dokument suchen, welche von dem jeweiligen Stichpunkt beschrieben wird."
+    else:
+        role = "Du erhältst einen originalen Schriftsatz von einem Beklagten sowie eine Liste mit Stichpunkten, welche einen Fakt innerhalb des Dokuments beschreiben. Du möchtest die Textstellen im originalen Dokument suchen, welche von dem jeweiligen Stichpunkt beschrieben wird."
+
+    # find the original plaintiff text
+    response = openai.ChatCompletion.create(
+        model=model,
+        messages=[
+            {"role": "system",
+                "content": "Du bist eine Richterassistentin. Deine Aufgabe ist es, den Richter zu unterstützen, um ihn effizienter bei der Vorbereitung einer Gerichtsverhandlung zu machen."},
+            {"role": "system",
+                "content": role},
+            {"role": "system",
+                "content": "Gib bitte die originale Textstellen in einer einzigen Liste zurück und zwar in der gleichen Reihenfolge wie die Stichpunkte. Bitte nimm keine ganzen Absätze, sondern nur kurze originale Textstücke. Beispiel: ['Originaltext1', 'Originaltext2', ...]."},
+            {"role": "system",
+                "content": "Es ist sehr wichtig, dass du die Formatierung ['Originaltext1', 'Originaltext2', ...] einhältst"},
+            {"role": "system",
+                "content": "Originaltext:"},
+            {"role": "user",
+                "content": full_text},
+            {"role": "system",
+                "content": "Liste mit Fakten:"},
+            {"role": "user",
+                "content": list_facts},
+        ])
+    answer = response['choices'][0]['message']['content']
+
+    print(context, "Chatbot Antwort")
+    print(answer)
+
+    # Find the position of '[' and ']'
+    start_index = answer.find('[')
+    end_index = answer.find(']')
+
+    # Extract the substring containing the list representation
+    list_representation = answer[start_index:end_index + 1]
+
+    try:
+        list_answer = ast.literal_eval(list_representation)
+    except (ValueError, SyntaxError) as e:
+        print(f"Error: {e}")
+
+    return list_answer
+
+
+# use this function for highlighting. Takes the PDF Path, the list with original texts and the context ("plaintiff" or "defendant") as input
+def highlight(path, list_source, context):
+
     # set list of colors for highlighting
     highlight_colors = [
         (0.8, 0.95, 0.8),  # Light Mint Green
@@ -192,118 +244,59 @@ def highlight_pdf():
         (0.95, 0.7, 0.7),  # Light Salmon (variation)
     ]
 
-    
-    # get text form (need to be sure to have the correct document)
-    full_text_plaintiff = read_pdf("pdfs/brief_plaintiff.pdf")
-    full_text_defendant = read_pdf("pdfs/brief_defendant.pdf")
+    pdfIn_pdf = fitz.open(path)
 
-    # list_contexts = df.iloc[1:, 0].tolist()
+    for page in pdfIn_pdf:
+
+        # find coordinates of text that should be highlighted
+        text_instances = [page.search_for(text) for text in list_source]
+
+        i = 0
+        # iterate through each instance for highlighting
+        for inst in text_instances:
+            annot = page.add_highlight_annot(inst)
+            annot.set_colors(stroke=highlight_colors[i])
+            annot.update()
+            i += 1
+
+    # Save the PDF Output
+    if context == "plaintiff":
+        pdfIn_pdf.save("pdfs/brief_plaintiff_highlighted.pdf")
+        print("PDF Plaintiff stored")
+    else:
+        pdfIn_pdf.save("pdfs/brief_defendant_highlighted.pdf")
+        print("PDF Defendant stored")
+
+
+### Feature 3: Compare documents by highlighting the briefs
+def compare_pdfs(gpt_4):
+
+    # get table of commonalities and differences
+    df = st.session_state.fact_table
+
+    # set paths
+    path_plaintiff = "pdfs/brief_plaintiff.pdf"
+    path_defendant = "pdfs/brief_defendant.pdf"
+
+    # get full text from briefs
+    full_text_plaintiff = read_pdf(path_plaintiff)
+    full_text_defendant = read_pdf(path_defendant)
+
+    # create a list of facts from the commonalities and differences table
     list_facts_plaintiff = df.iloc[1:, 2].tolist()
     list_facts_defendant = df.iloc[1:, 3].tolist()
 
+    # create a string that can be read by the LLM
     string_facts_plaintiff = ''.join(map(str, list_facts_plaintiff))
     string_facts_defendant = ''.join(map(str, list_facts_defendant))
 
-    # find the original plaintiff text
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system",
-                "content": "Du bist eine Richterassistentin namens Jasmin. Deine Aufgabe ist es, den Richter zu unterstützen, um ihn effizienter bei der Vorbereitung einer Gerichtsverhandlung zu machen."},
-            {"role": "system",
-                "content": "Du erhältst einen originalen Schriftsatz von einem Kläger sowie eine Liste mit Stichpunkten, welche einen Fakt innerhalb des Dokuments beschreiben. Du möchtest die Textstellen im originalen Dokument suchen, welche von dem jeweiligenn Stichpunkt beschrieben wird."},
-            {"role": "system",
-                "content": "Gibt bitte dir originale Textstellen in einer einzigen Liste zurück und zwar in der gleichen Reihenfolge wie die Stichpunkte. Bitte nimm keine ganzen Absätze, sondern nur kurze originale Textstücke. Achte Beispiel: ['Originaltext1', 'Originaltext2', ...]."},
-            {"role": "user", "content": full_text_plaintiff},
-            {"role": "user", "content": string_facts_plaintiff},
-        ])
-    text_plaintiff = response['choices'][0]['message']['content']
+    # get list of original texts from LLM
+    list_plaintiff = get_source(gpt_4, full_text_plaintiff, string_facts_plaintiff, "plaintiff")
+    list_defendant = get_source(gpt_4, full_text_defendant, string_facts_defendant, "defendant")
 
-    print("ChatGPT plaintiff")
-    print(text_plaintiff)
-
-    # Find the position of '[' and ']'
-    start_index = text_plaintiff.find('[')
-    end_index = text_plaintiff.find(']')
-
-    # Extract the substring containing the list representation
-    list_representation = text_plaintiff[start_index:end_index + 1]
-
-    try:
-        list_plaintiff = ast.literal_eval(list_representation)
-    except (ValueError, SyntaxError) as e:
-        print(f"Error: {e}")
-
-
-
-    # find the original defendant text
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system",
-                "content": "Du bist eine Richterassistentin namens Jasmin. Deine Aufgabe ist es, den Richter zu unterstützen, um ihn effizienter bei der Vorbereitung einer Gerichtsverhandlung zu machen."},
-            {"role": "system",
-                "content": "Du erhältst einen originalen Schriftsatz von einem Kläger sowie eine Liste mit Stichpunkten, welche einen Fakt innerhalb des Dokuments beschreiben. Du möchtest die Textstellen im originalen Dokument suchen, welche von dem jeweiligenn Stichpunkt beschrieben wird."},
-            {"role": "system",
-                "content": "Gibt bitte dir originale Textstellen in einer einzigen Liste zurück und zwar in der gleichen Reihenfolge wie die Stichpunkte. Bitte nimm keine ganzen Absätze, sondern nur kurze originale Textstücke. Beispiel: ['Originaltext1', 'Originaltext2', ...]."},
-            {"role": "user", "content": full_text_defendant},
-            {"role": "user", "content": string_facts_defendant},
-        ])
-    text_defendant = response['choices'][0]['message']['content']
-
-    # Find the position of '[' and ']'
-    start_index = text_defendant.find('[')
-    end_index = text_defendant.find(']')
-
-    # Extract the substring containing the list representation
-    list_representation = text_defendant[start_index:end_index + 1]
-
-    try:
-        list_defendant = ast.literal_eval(list_representation)
-    except (ValueError, SyntaxError) as e:
-        print(f"Error: {e}")
-
-    # highlight plaintiff
-    pdfIn_plaintiff = fitz.open("pdfs/brief_plaintiff.pdf")
-
-    for page in pdfIn_plaintiff:
-
-        # find coordinates of text that should be highlighted
-        text_instances = [page.search_for(text) for text in list_plaintiff]
-
-        i = 0
-        # iterate through each instance for highlighting
-        for inst in text_instances:
-            annot = page.add_highlight_annot(inst)
-            annot.set_colors(stroke=highlight_colors[i])
-            # annot.set_info(title=list_contexts[i])
-            annot.update()
-            i += 1
-
-    # Saving the PDF Output
-    pdfIn_plaintiff.save("pdfs/brief_plaintiff_highlighted.pdf")
-    print("PDF Plaintiff stored")
-
-    # highlight defendant
-    pdfIn_defendant = fitz.open("pdfs/brief_defendant.pdf")
-
-    for page in pdfIn_defendant:
-
-        # find coordinates of text that should be highlighted
-        text_instances = [page.search_for(text) for text in list_defendant]
-
-        i = 0
-        # iterate through each instance for highlighting
-        for inst in text_instances:
-            annot = page.add_highlight_annot(inst)
-            annot.set_colors(stroke=highlight_colors[i])
-            # annot.set_info(title=list_contexts[i])
-            annot.update()
-            i += 1
-
-    # Saving the PDF Output
-    pdfIn_defendant.save("pdfs/brief_defendant_highlighted.pdf")
-    print("PDF Defendant stored")
+    # highlight and save documents
+    highlight(path_plaintiff, list_plaintiff, "plaintiff")
+    highlight(path_defendant, list_defendant, "defendant")
 
 
 ### Chatbot Feature
