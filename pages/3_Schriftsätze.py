@@ -23,18 +23,10 @@ def displayPDF(file, col):
     col.markdown(pdf_display, unsafe_allow_html=True)
 
 ui.add_logo()
-with st.sidebar:
-    #download output.pdf file
-    st.download_button(
-    "PDF Herunterladen",
-    data=st.session_state.pdf,
-    file_name='Ganzheitliche Übersicht der Schriftsätze.pdf',
-    mime='application/pdf'
-)
-    
 
 if st.session_state.text_df.empty:
-    st.title("Es wurden noch keine Schriftsätze hochgeladen")
+    st.title("Vergleich der Schriftsätze ⚖️")
+    st.error("Bitte laden Sie zunächst Schriftsätze hoch, um die Schriftsätze vergleichen zu können.")
 
 else:
     st.title("Vergleich der Schriftsätze ⚖️")
@@ -44,3 +36,11 @@ else:
     displayPDF("pdfs/brief_plaintiff_highlighted.pdf", col1)
     col2.header("Beklagter")
     displayPDF("pdfs/brief_defendant_highlighted.pdf", col2)
+    with st.sidebar:
+        # download output.pdf file
+        st.download_button(
+            "PDF Herunterladen",
+            data=st.session_state.pdf,
+            file_name='Ganzheitliche Übersicht der Schriftsätze.pdf',
+            mime='application/pdf'
+        )

@@ -33,6 +33,8 @@ st.markdown(
 st.markdown("Laden Sie zunächst den Schriftsatz des Klägers und den Schriftsatz des Beklagten hoch. Achten Sie darauf, die Schriftsätze in dem korrekten Feld hochzuladen.")
 st.text("")
 
+uploaded = False
+
 # Allowing users to upload multiple files
 upload_plaintiff = st.file_uploader("Kläger Schriftsatz")
 upload_defendant = st.file_uploader("Beklagter Schriftsatz")
@@ -40,6 +42,7 @@ upload_defendant = st.file_uploader("Beklagter Schriftsatz")
 if upload_plaintiff and upload_defendant:
     upload_button = st.button("Hochladen")
     if upload_button:
+        uploaded = True
         st.success("Beide Dokumente wurden erfolgreich hochgeladen!")
         st.success("Verarbeitung läuft...")
         uploaded_files = [upload_plaintiff, upload_defendant]

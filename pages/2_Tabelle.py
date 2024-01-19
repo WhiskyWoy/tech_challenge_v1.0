@@ -12,17 +12,11 @@ if 'pdf' not in st.session_state:
 st.set_page_config(layout="wide")
 
 ui.add_logo()
-with st.sidebar:
-    #download output.pdf file
-    st.download_button(
-    "PDF Herunterladen",
-    data=st.session_state.pdf,
-    file_name='Ganzheitliche Übersicht der Schriftsätze.pdf',
-    mime='application/pdf'
-)
-    
 
-
+if st.session_state.fact_table.empty:
+    st.title("Tabelle mit den wichtigsten Fakten ⚖️")
+    st.error("Bitte laden Sie zunächst Schriftsätze hoch, um die Tabellenübersicht einsehen zu können.")
+else:
 # if st.session_state.fact_table.empty:
 #     st.title("Es wurden noch keine Schriftsätze hochgeladen")
 #     st.header("Beispiel Tabelle:")
@@ -52,11 +46,20 @@ with st.sidebar:
 #     #st.dataframe(df.style.set_properties(**{'font-weight': 'bold'}))
 #     st.dataframe(df)
 # else:
-st.title("Tabelle mit den wichtigsten Fakten ⚖️")
-df = st.session_state.fact_table
-#make headline bold with styler
-df.style.set_properties(**{'font-weight': 'bold'}, subset=['Headline'])
+    st.title("Tabelle mit den wichtigsten Fakten ⚖️")
+    df = st.session_state.fact_table
+    #make headline bold with styler
+    df.style.set_properties(**{'font-weight': 'bold'}, subset=['Headline'])
 
-st.dataframe(df)
+    st.dataframe(df)
+
+    with st.sidebar:
+        #download output.pdf file
+        st.download_button(
+        "PDF Herunterladen",
+        data=st.session_state.pdf,
+        file_name='Ganzheitliche Übersicht der Schriftsätze.pdf',
+        mime='application/pdf'
+    )
 
 

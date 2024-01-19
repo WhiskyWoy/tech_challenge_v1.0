@@ -10,7 +10,7 @@ ui.add_logo()
 
 # Setting page title and header
 #st.set_page_config(page_title="Jasmin")
-st.markdown("<h1 style='text-align: center;'>Jasmin - Die Richterassistentin</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>Chat mit Jasmin - Die Richterassistentin</h1>", unsafe_allow_html=True)
 
 # Initialise session state variables
 if 'generated' not in st.session_state:
@@ -63,7 +63,7 @@ with container:
     with st.form(key='my_form', clear_on_submit=True):
         user_input = st.text_area("Sie:", key='input', height=100)
         submit_button = st.form_submit_button(label='Senden')
-        
+
     if submit_button and user_input:
         output, total_tokens, prompt_tokens, completion_tokens = generate_response(user_input)
         st.session_state['past'].append(user_input)
