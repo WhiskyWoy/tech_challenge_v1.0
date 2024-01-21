@@ -1,2 +1,8 @@
 __pycache__/
 .streamlit/
+pdfs/merged.pdf
+pdfs/mytable.png
+pdfs/output.pdf
+pdfs/output2.pdf
+pdfs/brief_defendant_highlighted.pdf
+pdfs/brief_plaintiff_highlighted.pdf
