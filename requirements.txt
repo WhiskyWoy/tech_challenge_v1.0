@@ -1,6 +1,5 @@
 openai==0.28.0
 pdfminer.six==20221105
-pdfminer=20191125
 streamlit==1.30.0
 pandas==2.1.0
 lorem==0.1.1
@@ -10,3 +9,4 @@ PyMuPDFb==1.23.7
 matplotlib==3.8.0
 matplotlib-inline==0.1.6
 PyPDF2==3.0.1
+fpdf==1.7.2
