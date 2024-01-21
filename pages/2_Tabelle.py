@@ -17,35 +17,6 @@ if st.session_state.fact_table.empty:
     st.title("Tabelle mit den wichtigsten Fakten ⚖️")
     st.error("Bitte laden Sie zunächst Schriftsätze hoch, um die Tabellenübersicht einsehen zu können.")
 else:
-# if st.session_state.fact_table.empty:
-#     st.title("Es wurden noch keine Schriftsätze hochgeladen")
-#     st.header("Beispiel Tabelle:")
-#     #st.write(lorem.text())
-#     #st.markdown('<font size=10>lorem.text()</font>')
-
-
-#     @st.cache_data
-#     def text():
-#         return lorem.text()
-
-#     # Use st.markdown with inline CSS to change the font size
-#     #st.markdown(f'<div style="font-size: {font_size*10}px;">{text()}</div>', unsafe_allow_html=True)
-
-#     @st.cache_data
-#     def load_data():
-#         df = pd.read_excel("test_data/fact_table.xlsx")
-#         #use first column as index and drop it
-#         df.set_index(df.columns[0], inplace=True)
-#         return df
-
-#     #st.table(load_data())
-#     df = load_data()
-#     print(df)
-#     #df.style.set_properties(**{'font-weight': 'bold'}, subset=['Headline'])
-#     df = df.style.set_properties(**{'font-weight': 'bold'}, subset=df.columns)
-#     #st.dataframe(df.style.set_properties(**{'font-weight': 'bold'}))
-#     st.dataframe(df)
-# else:
     st.title("Tabelle mit den wichtigsten Fakten ⚖️")
     df = st.session_state.fact_table
     #make headline bold with styler

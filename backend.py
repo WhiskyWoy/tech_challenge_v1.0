@@ -5,40 +5,30 @@ import openai
 import re
 from pdfminer.high_level import extract_text
 from io import StringIO
-import io
 import os
 #pip install pymupdf
 import fitz
 import ast
 from fpdf import FPDF
-import lorem
 import matplotlib.pyplot as plt
 from pandas.plotting import table
 import textwrap
 import PyPDF2
+import time
 
 
-# initlializing key for gpt calls
-gpt_4 = False
+def set_api_key():
+    if st.session_state.gpt_4:
+        openai.api_key = st.secrets["OPENAI_GPT4_API_KEY"]
+        st.session_state.model = "gpt-4-1106-preview"
+    else:
+        st.session_state.model = "gpt-3.5-turbo"
+        openai.api_key = st.secrets["OPENAI_GPT3_API_KEY"]
 
-if gpt_4:
-    openai.api_key = "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" # GPT 4
-else:
-    openai.api_key = "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"
 
-
-def call(data, gpt_4):
-    # prepare data 
+def call(data):
+    set_api_key()
     pre_process_data(data)
-    print("preprocess done")
-    generate_summary(gpt_4)
-    print("summary done")
-    find_commonalities_and_differences(gpt_4)
-    print("commonalities done")
-    compare_pdfs(gpt_4)
-    print("highlight done")
-    create_pdf()
-    print("pdf done")
 
 def pre_process_data(data):
     # Allowing users to upload multiple files and storing the text in a dictionary
@@ -70,17 +60,12 @@ def pre_process_data(data):
 
 ### Feature 1: Generate Summary of the events
 
-def generate_summary(gpt_4):
+def generate_summary():
 
     #Calling the OpenAI API to create a summary
-    if gpt_4:
-        model = "gpt-4-1106-preview"
-
-    else:
-        model = "gpt-3.5-turbo"
     
     response = openai.ChatCompletion.create(
-        model=model,
+        model=st.session_state.model,
         messages=[
         {"role": "system", "content": "Du bist eine Richterassistentin namens Jasmin. Deine Aufgabe ist es, den Richter zu unterstützen, um ihn effizienter bei der Vorbereitung einer Gerichtsverhandlung zu machen."},
         {"role": "system", "content": "Du erhältst zwei Schriftsätze vom Kläger und vom Beklagten. Du möchtest herausfinden, was die Gemeinsamkeiten und Unterschiede zwischen den beiden Schriftsätzen sind. Du möchtest die wichtigsten Hauptargumente beider Parteien zusammenfassen und eine zusammenhängende Darstellung der rechtlichen Auseinandersetzung liefern."},
@@ -92,10 +77,6 @@ def generate_summary(gpt_4):
     # Extracting the generated summary from the api answer
     generated_summary = response['choices'][0]['message']['content']
 
-    # save as txt
-    with open("event_summary.txt", "w") as f:
-        f.write(generated_summary)
-
     st.session_state.event_summary = generated_summary
 
 
@@ -104,14 +85,10 @@ def generate_summary(gpt_4):
 # Basic approach by asking for simarlities and differences
 # how can be differentiated between the briefs?
 # Table format? --> über prompts darstellen: Wie sollen Gemeinsamkeiten und Unterschiede dargestellt werden?
-def find_commonalities_and_differences(gpt_4):
-    if gpt_4:
-        model = "gpt-4-1106-preview"
-    else:
-        model = "gpt-3.5-turbo"
+def find_commonalities_and_differences():
     
     response = openai.ChatCompletion.create(
-        model=model,
+        model=st.session_state.model,
         messages=[
         {"role": "system", "content": "Du bist eine Richterassistentin namens Jasmin. Deine Aufgabe ist es, den Richter zu unterstützen, um ihn effizienter bei der Vorbereitung einer Gerichtsverhandlung zu machen."},
         {"role": "system", "content": "Du erhältst zwei Schriftsätze vom Kläger und vom Beklagten. Du möchtest herausfinden, was die Gemeinsamkeiten und Unterschiede zwischen den beiden Schriftsätzen sind. Du möchtest eine Tabelle erstellen, die die wichtigesten Fakten in bestrittene und unbestrittene unterteilt. Die Tabelle hat vier Spalten: 'Name der Tatsache (z.B. Tatbestand)', 'bestritten (ja/nein)', 'Sicht des Klägers', 'Sicht des Beklagten'."},
@@ -121,28 +98,16 @@ def find_commonalities_and_differences(gpt_4):
         {"role": "user", "content": "Text 2" + st.session_state.text2},
         ])
     text = response['choices'][0]['message']['content']
-    print(text)
     # find the beginnig of the table at the first | and the end at the last |
     start = text.find("|")
     end = text.rfind("|")
     # extract the table
     table = text[start:end+1]
-    print("before", table)
-    # Remove the first and last line (empty lines)
     # Convert the markdown table into a TSV string
     tsv_string = "\n".join(["\t".join([cell.strip() for cell in row.split("|")[1:-1]]) for row in table.split("\n") if row.strip()])
-    print("after", tsv_string)
     # Use StringIO to read the TSV string into a DataFrame
     df = pd.read_csv(StringIO(tsv_string), sep='\t')
-    # save csv
-    with open("commonalities_and_differences.csv", "w") as f:
-        f.write(tsv_string)
 
-
-    print("df", df)
-
-    
-    print("df drop", df.drop(df.index[0], inplace=True))
     st.session_state.fact_table = df
 
     return df
@@ -151,9 +116,7 @@ def find_commonalities_and_differences(gpt_4):
 # read out pdfs
 def read_pdf(pdf_path):
     pdf = fitz.open(pdf_path)
-
     full_text = ""
-
     for page_number in range(pdf.page_count):
         page = pdf[page_number]
         text = page.get_text()
@@ -164,12 +127,7 @@ def read_pdf(pdf_path):
     return full_text
 
 # get the original text from full text
-def get_source(gpt_4, full_text, list_facts, context):
-
-    if gpt_4:
-        model = "gpt-4-1106-preview"
-    else:
-        model = "gpt-3.5-turbo"
+def get_source(full_text, list_facts, context):
 
     if context == "plaintiff":
         role = "Du erhältst einen originalen Schriftsatz von einem Kläger sowie eine Liste mit Stichpunkten, welche einen Fakt innerhalb des Dokuments beschreiben. Du möchtest die Textstellen im originalen Dokument suchen, welche von dem jeweiligen Stichpunkt beschrieben wird."
@@ -178,7 +136,7 @@ def get_source(gpt_4, full_text, list_facts, context):
 
     # find the original plaintiff text
     response = openai.ChatCompletion.create(
-        model=model,
+        model=st.session_state.model,
         messages=[
             {"role": "system",
                 "content": "Du bist eine Richterassistentin. Deine Aufgabe ist es, den Richter zu unterstützen, um ihn effizienter bei der Vorbereitung einer Gerichtsverhandlung zu machen."},
@@ -249,7 +207,10 @@ def highlight(path, list_source, context):
     for page in pdfIn_pdf:
 
         # find coordinates of text that should be highlighted
-        text_instances = [page.search_for(text) for text in list_source]
+        try:
+            text_instances = [page.search_for(text) for text in list_source]
+        except:
+            st.error("Es gab einen Fehler beim Hervorheben der Textstellen. Der Vergleich ist fehlerhaft oder konnte nicht erstellt werden. Versuchen Sie es erneut oder nutzen Sie GPT-4.")
 
         i = 0
         # iterate through each instance for highlighting
@@ -269,7 +230,7 @@ def highlight(path, list_source, context):
 
 
 ### Feature 3: Compare documents by highlighting the briefs
-def compare_pdfs(gpt_4):
+def compare_pdfs():
 
     # get table of commonalities and differences
     df = st.session_state.fact_table
@@ -291,26 +252,13 @@ def compare_pdfs(gpt_4):
     string_facts_defendant = ''.join(map(str, list_facts_defendant))
 
     # get list of original texts from LLM
-    list_plaintiff = get_source(gpt_4, full_text_plaintiff, string_facts_plaintiff, "plaintiff")
-    list_defendant = get_source(gpt_4, full_text_defendant, string_facts_defendant, "defendant")
+    list_plaintiff = get_source(full_text_plaintiff, string_facts_plaintiff, "plaintiff")
+    list_defendant = get_source(full_text_defendant, string_facts_defendant, "defendant")
 
     # highlight and save documents
     highlight(path_plaintiff, list_plaintiff, "plaintiff")
     highlight(path_defendant, list_defendant, "defendant")
 
-
-### Chatbot Feature
-# messages = [{"role": "system", "content": "You are a judge assistant that specializes in offering support services for judges in their work with briefs"}]
-
-# def customChatGPT(messages):
-#     # messages.append({"role": "user", "content": user_input})
-#     response = openai.ChatCompletion.create(
-#         model = "gpt-3.5-turbo",
-#         messages = messages
-#     )
-#     ChatGPT_reply = response["choices"][0]["message"]["content"]
-#     # messages.append({"role": "assistant", "content": ChatGPT_reply})
-#     return ChatGPT_reply
 
 # generate a response
 def generate_response(prompt):
@@ -332,17 +280,10 @@ def generate_response(prompt):
 def create_pdf():
     text = st.session_state.event_summary
     df = st.session_state.fact_table
-    #df = pd.read_excel("fact_table.xlsx")
-    #use first column as index and drop it
-    #df.set_index(df.columns[0], inplace=True)
-    #text = lorem.text()
-
-    #pdf.set_font("Arial", size=12)
     def add_line_breaks(text):
         return '\n'.join(textwrap.wrap(text, width=50))
 
-    # Apply the function to each cell in the DataFrame
-    df = df.applymap(add_line_breaks)
+
 
     pdf = FPDF()
     pdf.add_page()
@@ -353,40 +294,32 @@ def create_pdf():
     pdf.cell(200, 10, txt="Zusammenfassung", ln=1, align="C")
     pdf.set_font('DejaVu', '', 10)
     pdf.cell(200, 10, txt=" ", ln=1, align="C")
-    #pdf.multi_cell(200, 10, txt=text.tolist()[0], ln=1, align="L")
     pdf.multi_cell(175, 5, txt=text, align="L")
-    #pdf.cell(200, 10, txt=" ", ln=1, align="C")
-    #pdf.cell(200, 10, txt=" ", ln=1, align="C")
-    #pdf.cell(200, 10, txt=" ", ln=1, align="C")
-    #pdf.set_font('DejaVu', 'B', 14)
-    #pdf.cell(200, 10, txt="Tabelle der wichtigsten Fakten", ln=1, align="C")
-    #pdf.set_font('DejaVu', '', 14)
-    #pdf.cell(200, 10, txt=" ", ln=1, align="C")
 
-    fig, ax = plt.subplots(figsize=(24, 12)) # set size frame
-    ax.xaxis.set_visible(False)  # hide the x axis
-    ax.yaxis.set_visible(False)  # hide the y axis
-    ax.set_frame_on(False)  # no visible frame
-    # add title
-    ax.set_title('Tabelle der wichtigsten Fakten', fontsize=24, color='black', position=(0.5, 1.0))
-    tabla = table(ax, df, loc='center', cellLoc='center')  # where df is your data frame
-    tabla.auto_set_font_size(True) # Activate set fontsize manually
-    #tabla.set_fontsize(10) # if ++fontsize is necessary ++colWidths
-    tabla.scale(1.2, 5.5) # Table size
-    plt.savefig('mytable.png')
+    try:
+        df = df.applymap(add_line_breaks)
+        fig, ax = plt.subplots(figsize=(24, 12)) # set size frame
+        ax.xaxis.set_visible(False)  # hide the x axis
+        ax.yaxis.set_visible(False)  # hide the y axis
+        ax.set_frame_on(False)  # no visible frame
+        # add title
+        ax.set_title('Tabelle der wichtigsten Fakten', fontsize=24, color='black', position=(0.5, 1.0))
+        tabla = table(ax, df, loc='center', cellLoc='center')  # where df is your data frame
+        tabla.auto_set_font_size(True) # Activate set fontsize manually
+        #tabla.set_fontsize(10) # if ++fontsize is necessary ++colWidths
+        tabla.scale(1.2, 5.5) # Table size
+        plt.savefig('pdfs/mytable.png')
+        #new page
+        pdf.add_page(orientation='L')
+        pdf.image('pdfs/mytable.png', x = 0, y = 0, w = 300, h = 200)
+    except:
+        st.error("Die Tabelle hatte ein falsches Format, sie wird nicht in die PDF übernommen.")
 
-    #new page
-    pdf.add_page(orientation='L')
-
-    
-
-    pdf.image('mytable.png', x = 0, y = 0, w = 300, h = 200)
-
-    pdf.output("output.pdf")
+    pdf.output("pdfs/output.pdf")
 
     merger = PyPDF2.PdfMerger()
     # List of PDF files to merge
-    pdf_files = ["output.pdf", "pdfs/brief_plaintiff_highlighted.pdf", "pdfs/brief_defendant_highlighted.pdf"]
+    pdf_files = ["pdfs/output.pdf", "pdfs/brief_plaintiff_highlighted.pdf", "pdfs/brief_defendant_highlighted.pdf"]
 
     # Loop through the PDF files and add each one to the merger
     for pdf_file in pdf_files:
@@ -394,16 +327,10 @@ def create_pdf():
             merger.append(fileobj)
 
     # Write the merged PDF to a new file
-    with open("merged.pdf", "wb") as outfile:
+    with open("pdfs/merged.pdf", "wb") as outfile:
         merger.write(outfile)
 
     #read pdf as bytes
-    with open("merged.pdf", "rb") as f:
+    with open("pdfs/merged.pdf", "rb") as f:
         st.session_state.pdf = f.read()
         
-    # Save the PDF to a bytes object
-    #pdf_out = io.BytesIO()
-    #pdf.output(dest='S')
-    #pdf_data = pdf_out.getvalue()
-    #st.session_state.pdf = pdf.output(dest='S').encode('latin-1')
-

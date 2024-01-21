@@ -17,19 +17,7 @@ if st.session_state.event_summary == None:
     ui.add_logo()
     st.title("Zusammenfassung der Schriftsätze ⚖️")
     st.error("Bitte laden Sie zunächst Schriftsätze hoch, um sich die Zusammenfassung ausgeben lassen zu können.")
-    # st.header("Example Summary:")
-    # #st.write(lorem.text())
-    # #st.markdown('<font size=10>lorem.text()</font>')
 
-
-    # # Define the font size variable
-
-    # @st.cache_data
-    # def text():
-    #     return lorem.text()
-
-    # # Use st.markdown with inline CSS to change the font size
-    # st.write(text())
 else:
     ui.add_logo()
     st.title("Zusammenfassung der Schriftsätze ⚖️")
