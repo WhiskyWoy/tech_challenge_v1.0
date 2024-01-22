@@ -28,20 +28,23 @@ st.markdown(
     - **Interaktive Kommunikation:** fragen Sie Jasmin Ihre Fragen zum Fall
 """
 )
+st.text("")
+st.text("")
+st.text("")
 
 st.markdown("Laden Sie zunächst den Schriftsatz des Klägers und den Schriftsatz des Beklagten hoch. Achten Sie darauf, die Schriftsätze in dem korrekten Feld hochzuladen.")
-cola2, cola3, cola4 = st.columns([0.15,0.05,0.7])
-cola2.write("Und wähle eine GPT Version aus:")
+cola2, cola3, cola4 = st.columns([0.15,0.07,0.7])
+cola2.write("Und wähle eine Einstellung aus:")
 
 if 'gpt_4' not in st.session_state:
     st.session_state.gpt_4 = None
 
-if cola3.button("GPT-4"):
+if cola3.button("Präsize"):
     st.session_state.gpt_4 = True
-    st.success("GPT-4 wurde ausgewählt.")
-if cola4.button("GPT-3"):
+    st.success("Präsize wurde ausgewählt.")
+if cola4.button("Schnell"):
     st.session_state.gpt_4 = False
-    st.success("GPT-3 wurde ausgewählt.")
+    st.success("Schnell wurde ausgewählt.")
 
 password = st.text_input("Bitte gebe das Passwort ein", type="password")
 
@@ -111,11 +114,11 @@ if upload_plaintiff and upload_defendant:
                 message = st.info("Vergleich der Schriftsätze wird erstellt...")
                 if not st.session_state.gpt_4:
                     message3 = st.info("Jasmin brauch eine kurze Pause, der Vergleich kommt in 30 Sekunden (too many requests as GPT-3.5 Turbo is limited at 3 actions per minute)")
+                    message3.empty()
                     time.sleep(30)
                 backend.compare_pdfs()
                 message0.empty()
                 message1.empty()
-                message3.empty()
                 message0 = st.success("Vergleich der Schriftsätze erfolgreich erstellt!")
                 backend.create_pdf()
                 message1 = st.success("Wähle eine der vier Funktionen von Jasmin aus")
