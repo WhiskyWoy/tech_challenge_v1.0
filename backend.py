@@ -16,6 +16,10 @@ import textwrap
 import PyPDF2
 import time
 
+def call(data):
+    set_api_key()
+    pre_process_data(data)
+
 
 def set_api_key():
     if st.session_state.gpt_4:
@@ -24,11 +28,6 @@ def set_api_key():
     else:
         st.session_state.model = "gpt-3.5-turbo"
         openai.api_key = st.secrets["OPENAI_GPT3_API_KEY"]
-
-
-def call(data):
-    set_api_key()
-    pre_process_data(data)
 
 def pre_process_data(data):
     # Allowing users to upload multiple files and storing the text in a dictionary
@@ -107,7 +106,7 @@ def find_commonalities_and_differences():
     tsv_string = "\n".join(["\t".join([cell.strip() for cell in row.split("|")[1:-1]]) for row in table.split("\n") if row.strip()])
     # Use StringIO to read the TSV string into a DataFrame
     df = pd.read_csv(StringIO(tsv_string), sep='\t')
-
+    df.drop(df.index[0], inplace=True)
     st.session_state.fact_table = df
 
     return df
@@ -333,4 +332,3 @@ def create_pdf():
     #read pdf as bytes
     with open("pdfs/merged.pdf", "rb") as f:
         st.session_state.pdf = f.read()
-        
