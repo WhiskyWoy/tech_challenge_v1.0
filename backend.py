@@ -144,7 +144,7 @@ def get_source(full_text, list_facts, context):
             {"role": "system",
                 "content": "Gib bitte die originale Textstellen in einer einzigen Liste zurück und zwar in der gleichen Reihenfolge wie die Stichpunkte. Bitte nimm keine ganzen Absätze, sondern nur kurze originale Textstücke. Beispiel: ['Originaltext1', 'Originaltext2', ...]."},
             {"role": "system",
-                "content": "Es ist sehr wichtig, dass du die Formatierung ['Originaltext1', 'Originaltext2', ...] einhältst"},
+                "content": "Es ist sehr wichtig, dass du die Formatierung ['Originaltext1', 'Originaltext2', ...] einhältst. Falls ein Fakt in dem Originaldokument nicht enthalten sein sollte, schreibe bitte 'nicht enthalten' in die Liste."},
             {"role": "system",
                 "content": "Originaltext:"},
             {"role": "user",
