@@ -28,23 +28,20 @@ st.markdown(
     - **Interaktive Kommunikation:** fragen Sie Jasmin Ihre Fragen zum Fall
 """
 )
-st.text("")
-st.text("")
-st.text("")
 
 st.markdown("Laden Sie zunächst den Schriftsatz des Klägers und den Schriftsatz des Beklagten hoch. Achten Sie darauf, die Schriftsätze in dem korrekten Feld hochzuladen.")
-cola2, cola3, cola4 = st.columns([0.15,0.07,0.7])
-cola2.write("Und wähle eine Einstellung aus:")
+cola2, cola3, cola4 = st.columns([0.15,0.05,0.7])
+cola2.write("Und wähle eine GPT Version aus:")
 
 if 'gpt_4' not in st.session_state:
     st.session_state.gpt_4 = None
 
-if cola3.button("Präsize"):
+if cola3.button("GPT-4"):
     st.session_state.gpt_4 = True
-    st.success("Präsize wurde ausgewählt.")
-if cola4.button("Schnell"):
+    st.success("GPT-4 wurde ausgewählt.")
+if cola4.button("GPT-3"):
     st.session_state.gpt_4 = False
-    st.success("Schnell wurde ausgewählt.")
+    st.success("GPT-3 wurde ausgewählt.")
 
 password = st.text_input("Bitte gebe das Passwort ein", type="password")
 
@@ -100,29 +97,29 @@ if upload_plaintiff and upload_defendant:
                 with open(path_defendant, "wb") as f_defendant:
                     f_defendant.write(upload_defendant.getbuffer())
                 backend.call(uploaded_files)
-                message1 = st.info("Zusammenfassung wird erstellt...")
+                message1 = st.info("Zusammenfassung wird erstellt. Um Sie bestmöglich zu unterstützen, kann dies ein wenig Zeit in Anspruch nehmen.")
                 backend.generate_summary()
                 message0.empty()
                 message1.empty()
                 message0 = st.success("Zusammenfassung erfolgreich erstellt!")
-                message1.info("Bitte warte mit dem auswählen einer Funktion, bis die Verarbeitung abgeschlossen ist.")
-                message2 = st.info("Tabelle wird erstellt...")
+                message1.info("Bitte warten Sie mit der Funktionsauswahl, bis die Verarbeitung abgeschlossen ist.")
+                message2 = st.info("Tabelle wird erstellt. Um Sie bestmöglich zu unterstützen, kann dies ein wenig Zeit in Anspruch nehmen.")
                 backend.find_commonalities_and_differences()
                 message0.empty()
                 message2.empty()
                 message0 = st.success("Tabelle erfolgreich erstellt!")
-                message = st.info("Vergleich der Schriftsätze wird erstellt...")
+                message = st.info("Vergleich der Schriftsätze wird erstellt. Um Sie bestmöglich zu unterstützen, kann dies ein wenig Zeit in Anspruch nehmen.")
                 if not st.session_state.gpt_4:
                     message3 = st.info("Jasmin brauch eine kurze Pause, der Vergleich kommt in 30 Sekunden (too many requests as GPT-3.5 Turbo is limited at 3 actions per minute)")
-                    message3.empty()
                     time.sleep(30)
                 backend.compare_pdfs()
                 message0.empty()
                 message1.empty()
+                message3.empty()
                 message0 = st.success("Vergleich der Schriftsätze erfolgreich erstellt!")
                 backend.create_pdf()
-                message1 = st.success("Wähle eine der vier Funktionen von Jasmin aus")
-                st.sidebar.success("Wähle eine Option aus der Sidebar aus.")
+                message1 = st.success("Wählen Sie jetzt eins von Jasmins Tools aus.")
+                st.sidebar.success("Wählen Sie eine Option der Sidebar aus.")
                 
             else:
                 st.error("Falsches Passwort!")
